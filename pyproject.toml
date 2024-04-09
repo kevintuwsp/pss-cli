@@ -1,0 +1,26 @@
+[project]
+name = "pss-cli"
+version = "0.1.0"
+description = "Add your description here"
+dependencies = [
+    "sqlmodel>=0.0.16",
+    "rich>=13.7.1",
+    "shellingham>=1.5.4",
+    "typer>=0.12.2",
+]
+readme = "README.md"
+requires-python = ">= 3.7"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = []
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pss_cli"]
