@@ -1,2 +1,3 @@
-def hello() -> str:
-    return "Hello from pss-cli!"
+def main() -> int:
+    print("Hello from pss-cli!")
+    return 0

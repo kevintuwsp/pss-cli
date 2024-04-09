@@ -18,12 +18,15 @@ greenlet==3.0.3
     # via sqlalchemy
 importlib-metadata==6.7.0
     # via click
+    # via pluggy
     # via pydantic
     # via sqlalchemy
 markdown-it-py==2.2.0
     # via rich
 mdurl==0.1.2
     # via markdown-it-py
+pluggy==1.2.0
+    # via pss-cli
 pydantic==2.5.3
     # via sqlmodel
 pydantic-core==2.14.6
@@ -39,6 +42,8 @@ shellingham==1.5.4
 sqlalchemy==2.0.29
     # via sqlmodel
 sqlmodel==0.0.16
+    # via pss-cli
+tabulate==0.9.0
     # via pss-cli
 typer==0.12.2
     # via pss-cli
