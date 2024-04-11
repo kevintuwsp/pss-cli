@@ -27,22 +27,33 @@ importlib-metadata==6.7.0
     # via sqlalchemy
 iniconfig==2.0.0
     # via pytest
+inquirerpy==0.3.4
+    # via pss-cli
 markdown-it-py==2.2.0
     # via rich
 mdurl==0.1.2
     # via markdown-it-py
 packaging==24.0
     # via pytest
+pfzy==0.3.4
+    # via inquirerpy
 pluggy==1.2.0
     # via pss-cli
     # via pytest
+prompt-toolkit==3.0.43
+    # via inquirerpy
+    # via questionary
 pydantic==2.5.3
     # via sqlmodel
 pydantic-core==2.14.6
     # via pydantic
+pyfzf==0.3.1
+    # via pss-cli
 pygments==2.17.2
     # via rich
 pytest==7.4.4
+questionary==1.10.0
+    # via pss-cli
 rich==13.7.1
     # via pss-cli
     # via typer
@@ -68,5 +79,7 @@ typing-extensions==4.7.1
     # via rich
     # via sqlalchemy
     # via typer
+wcwidth==0.2.13
+    # via prompt-toolkit
 zipp==3.15.0
     # via importlib-metadata

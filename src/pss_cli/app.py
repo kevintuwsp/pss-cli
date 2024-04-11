@@ -1,12 +1,24 @@
 import os
+import typer
 
 from tabulate import tabulate
 
 from rich import print
 from sqlmodel import Session, select
 
-from .models import Scenario, Case, CaseDynamicFile
-from .database import engine, create_db_and_tables, sqlite_filename
+from rich.traceback import install
+
+from pss_cli.models import Scenario, Case, CaseDynamicFile
+from pss_cli.database import engine, create_db_and_tables, sqlite_filename
+from pss_cli.commands import add, show, menu
+
+
+install(show_locals=True)
+
+app = typer.Typer()
+app.add_typer(add.app, name="add")
+app.add_typer(show.app, name="show")
+app.add_typer(menu.app, name="menu")
 
 
 def create_test_data():
@@ -59,9 +71,10 @@ def print_tabulate(result):
 
 
 def main():
-    print("pss-cli entry point")
-    if os.path.exists(sqlite_filename):
-        os.remove(sqlite_filename)
-    create_db_and_tables()
-    create_test_data()
-    query_data()
+    app()
+    # print("pss-cli entry point")
+    # if os.path.exists(sqlite_filename):
+    #     os.remove(sqlite_filename)
+    # create_db_and_tables()
+    # create_test_data()
+    # query_data()
