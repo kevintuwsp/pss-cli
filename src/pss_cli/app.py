@@ -71,10 +71,10 @@ def print_tabulate(result):
 
 
 def main():
+    create_db_and_tables()
     app()
     # print("pss-cli entry point")
     # if os.path.exists(sqlite_filename):
     #     os.remove(sqlite_filename)
-    # create_db_and_tables()
     # create_test_data()
     # query_data()

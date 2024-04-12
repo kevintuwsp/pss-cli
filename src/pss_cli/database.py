@@ -1,3 +1,4 @@
+from typing import List
 from sqlmodel import SQLModel, Session, select, create_engine
 
 
@@ -5,6 +6,12 @@ sqlite_filename = "database.db"
 sqlite_url = f"sqlite:///{sqlite_filename}"
 
 engine = create_engine(sqlite_url)
+
+
+def get_all_table_names() -> List[str]:
+    """Return a list of all table names"""
+
+    return SQLModel.metadata.tables.keys()
 
 
 def get_table_object(table_name: str):

@@ -1,9 +1,11 @@
 import re
+
 from typing import List
 from pathlib import Path
 from InquirerPy import inquirer
+from sqlmodel import SQLModel
 
-from pss_cli.database import select_table
+from pss_cli.database import get_all_table_names, select_table
 
 
 def get_parameter_from_string(input_strings: List[str], parameter: str):
@@ -41,7 +43,7 @@ def prompt_case_path(root_dir: str, match_pattern: str):
     return fpath
 
 
-def prompt_table(table_name: str, parameter: str):
+def prompt_table(table_name: str, parameter: str) -> SQLModel:
     """Return a checkbox selection of table rows from the database"""
 
     objects = select_table(table_name)
@@ -60,3 +62,17 @@ def prompt_table(table_name: str, parameter: str):
         return None
 
     return results
+
+
+def prompt_table_names() -> str:
+    """Return a selection of table names"""
+
+    table_names = get_all_table_names()
+
+    table_name = inquirer.select(
+        message="Select a table from the database.",
+        choices=table_names,
+        border=True,
+    ).execute()
+
+    return table_name
