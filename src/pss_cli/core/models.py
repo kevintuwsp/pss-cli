@@ -13,7 +13,7 @@ class ScenarioCaseLink(SQLModel, table=True):
 
 class Scenario(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    name: str
+    name: str = Field(unique=True)
     description: Optional[str] = None
     cases: List["Case"] = Relationship(
         back_populates="scenarios", link_model=ScenarioCaseLink
@@ -24,6 +24,7 @@ class Case(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str
     file_name: str
+    md5_hash: str
     description: Optional[str] = None
     rel_path: Optional[str] = None
     scenarios: List["Scenario"] = Relationship(

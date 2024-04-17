@@ -1,22 +1,27 @@
 import typer
-from rich import print
-from pss_cli.database import select_table, get_all_table_names
 from typing import Optional
+from typing_extensions import Annotated
 
-from pss_cli.prompts import prompt_table_names
-from pss_cli.ui import print_model
+from pss_cli.core.database import db
+from pss_cli.core.prompts import prompt_table_names
+from pss_cli.core.ui import print_model
 
 
 app = typer.Typer()
 
 
 @app.command(name="table")
-def get_table(name: Optional[str] = None):
+def get_table(name: Annotated[Optional[str], typer.Argument()] = None):
     """Show table from database"""
 
     if not name:
         name = prompt_table_names()
 
-    results = select_table(name)
+    results = db.select_table(name)
+
+    if not results:
+        print(f"Table '{name}' not found in the database")
+        return
+
     for result in results:
         print_model(result)
