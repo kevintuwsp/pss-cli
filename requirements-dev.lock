@@ -43,6 +43,8 @@ pluggy==1.2.0
 prompt-toolkit==3.0.43
     # via inquirerpy
     # via questionary
+pssepath==0.2.3
+    # via pss-cli
 pydantic==2.5.3
     # via sqlmodel
 pydantic-core==2.14.6
