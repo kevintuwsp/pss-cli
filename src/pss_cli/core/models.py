@@ -48,6 +48,7 @@ class GeneratingSystem(SQLModel, table=True):
     name: str
     from_bus: int
     to_bus: int
+    reversed: bool = Field(default=False)
     case_id: Optional[int] = Field(default=None, foreign_key="case.id")
     case: "Case" = Relationship(back_populates="generating_systems")
     generators: List["Generator"] = Relationship(back_populates="generating_systems")
@@ -99,3 +100,20 @@ class InfGeneratorSetpoint(SQLModel, table=True):
 
     v_setpoint: Optional[float] = None
     generator: "InfGenerator" = Relationship(back_populates="setpoint")
+
+
+class CaseBusData(SQLModel, table=True):
+    case_id: Optional[int] = Field(foreign_key="case.id")
+    bus_number: int = Field(primary_key=True)
+    bus_name: str
+    bus_voltage: float
+    bus_type: int
+
+
+class CaseBranchData(SQLModel, table=True):
+    case_id: Optional[int] = Field(foreign_key="case.id")
+    from_bus_number: int
+    to_bus_number: int
+    branch_id: str
+    from_bus_name: str
+    to_bus_name: str

@@ -43,6 +43,12 @@ class PsseCaseDataMixin(BaseModel):
         ierr, branch_to_numbers = psspy.abrnint(string="TONUMBER")
         return branch_to_numbers[0]
 
+    def get_branch_ids(self) -> List[str]:
+        """Return a list of branch ids"""
+
+        ierr, branch_ids = psspy.abrnchar(string="ID")
+        return branch_ids[0]
+
     def get_branch_from_bus_names(self) -> List[str]:
         """Return a list of branch from bus names"""
 
