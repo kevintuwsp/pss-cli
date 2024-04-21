@@ -9,6 +9,7 @@ class ScenarioCaseLink(SQLModel, table=True):
     case_id: Optional[int] = Field(
         default=None, primary_key=True, foreign_key="case.id"
     )
+    file_path: str
 
 
 class Scenario(SQLModel, table=True):
@@ -18,12 +19,16 @@ class Scenario(SQLModel, table=True):
     cases: List["Case"] = Relationship(
         back_populates="scenarios", link_model=ScenarioCaseLink
     )
+    bus_values: List["ScenarioBusValues"] = Relationship(back_populates="scenario")
+    branch_values: List["ScenarioBranchValues"] = Relationship(
+        back_populates="scenario"
+    )
 
 
 class Case(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str
-    file_name: str
+    file_path: str
     md5_hash: str
     description: Optional[str] = None
     rel_path: Optional[str] = None
@@ -33,11 +38,15 @@ class Case(SQLModel, table=True):
     dynamic_files: List["CaseDynamicFile"] = Relationship(back_populates="case")
     generating_systems: List["GeneratingSystem"] = Relationship(back_populates="case")
     inf_generator: "InfGenerator" = Relationship(back_populates="case")
+    bus_data: List["CaseBusData"] = Relationship(back_populates="case")
+    branch_data: List["ScenarioBusValues"] = Relationship(back_populates="case")
+    bus_values: List["ScenarioBusValues"] = Relationship(back_populates="case")
+    branch_values: List["ScenarioBranchValues"] = Relationship(back_populates="case")
 
 
 class CaseDynamicFile(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    file_name: str
+    file_path: str
     rel_path: Optional[str] = None
     case_id: Optional[int] = Field(default=None, foreign_key="case.id")
     case: "Case" = Relationship(back_populates="dynamic_files")
@@ -106,14 +115,43 @@ class CaseBusData(SQLModel, table=True):
     case_id: Optional[int] = Field(foreign_key="case.id")
     bus_number: int = Field(primary_key=True)
     bus_name: str
-    bus_voltage: float
+    bus_base_voltage: float
     bus_type: int
+    case: "Case" = Relationship(back_populates="bus_data")
 
 
 class CaseBranchData(SQLModel, table=True):
     case_id: Optional[int] = Field(foreign_key="case.id")
-    from_bus_number: int
-    to_bus_number: int
-    branch_id: str
+    from_bus_number: int = Field(primary_key=True)
+    to_bus_number: int = Field(primary_key=True)
+    branch_id: str = Field(primary_key=True)
     from_bus_name: str
     to_bus_name: str
+    branch_values: "Case" = Relationship(back_populates="case")
+
+
+class ScenarioBusValues(SQLModel, table=True):
+    case_id: Optional[int] = Field(primary_key=True, foreign_key="case.id")
+    scenario_id: Optional[int] = Field(primary_key=True, foreign_key="scenario.id")
+    bus_number: int = Field(foreign_key="casebusdata.bus_number")
+    bus_voltage_pu: float
+    bus_voltage_kv: float
+    bus_voltage_angle_deg: float
+    case: "Case" = Relationship(back_populates="bus_values")
+    scenario: "Scenario" = Relationship(back_populates="bus_values")
+
+
+class ScenarioBranchValues(SQLModel, table=True):
+    case_id: Optional[int] = Field(primary_key=True, foreign_key="case.id")
+    scenario_id: Optional[int] = Field(primary_key=True, foreign_key="scenario.id")
+    from_bus_number: int = Field(
+        primary_key=True, foreign_key="casebranchdata.from_bus_number"
+    )
+    to_bus_number: int = Field(
+        primary_key=True, foreign_key="casebranchdata.to_bus_number"
+    )
+    branch_id: str = Field(primary_key=True, foreign_key="casebranchdata.branch_id")
+    active_power_mw: float
+    reactive_power_mw: float
+    case: "Case" = Relationship(back_populates="branch_values")
+    scenario: "Scenario" = Relationship(back_populates="branch_values")

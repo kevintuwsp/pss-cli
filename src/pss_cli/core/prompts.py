@@ -8,6 +8,18 @@ from pss_cli.utils.regex import get_parameter_from_string, get_parameter_from_st
 from pss_cli.core.database import db
 
 
+def prompt_bool(message: str) -> bool:
+    """Prompt user for true/false input"""
+
+    response = inquirer.select(
+        message=message,
+        choices=[True, False],
+        border=True,
+    ).execute()
+
+    return response
+
+
 def prompt_case_path(root_dir: str, match_pattern: str):
     """Prompt the user to select a file path"""
 
@@ -41,7 +53,7 @@ def prompt_select_table(table_name: str, parameter: Optional[str]) -> SQLModel:
     if parameter:
         transformer = partial(get_parameter_from_string, parameter=parameter)
 
-    results = inquirer.select(
+    results = inquirer.fuzzy(
         message=f"Select objects from database table '{table_name}'",
         long_instruction="Press <space> to select, <enter> to finish selection.",
         choices=objects,

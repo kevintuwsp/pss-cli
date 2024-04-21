@@ -16,4 +16,4 @@ def print_model(
         )
 
     title = model.__tablename__
-    print(Panel("\n".join(key_values), expand=False, title=title))
+    print(Panel(" | ".join(key_values), expand=False, title=title))

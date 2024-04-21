@@ -14,7 +14,12 @@ from pss_cli.core.models import (
     Generator,
 )
 
-from pss_cli.core.prompts import prompt_case_path, prompt_table, prompt_select_table
+from pss_cli.core.prompts import (
+    prompt_bool,
+    prompt_case_path,
+    prompt_table,
+    prompt_select_table,
+)
 from pss_cli.core.ui import print_model
 from pss_cli.utils.hash import get_hash
 
@@ -34,6 +39,7 @@ def add_scenario(name: str, description: str = None, link_all_cases: bool = Fals
         cases = prompt_table("case", parameter="name")
 
     scenario.cases = cases
+    # TODO: Need to create a new file (copy) and add to db via association table
 
     with db.session() as session:
         db.add(scenario, session=session)
@@ -56,7 +62,7 @@ def add_case(
 
     md5_hash = get_hash(fpath)
 
-    case = Case(name=name, file_name=str(fpath), md5_hash=md5_hash)
+    case = Case(name=name, file_path=str(fpath), md5_hash=md5_hash)
 
     with db.session() as session:
         db.add(case, session=session)
@@ -66,13 +72,22 @@ def add_case(
 
 
 @app.command("gs")
-def add_generating_system(name: str, from_bus: int, to_bus: int):
+def add_generating_system(name: str):
     """Add a generating system to the case"""
 
     case = prompt_select_table("case", parameter=None)
 
+    branch = prompt_select_table("casebranchdata", parameter="from_bus_number")
+    reversed = prompt_bool(message="Reverse power flow direction?")
+    from_bus = branch.from_bus_number
+    to_bus = branch.to_bus_number
+
     generating_system = GeneratingSystem(
-        name=name, from_bus=from_bus, to_bus=to_bus, case=case
+        name=name,
+        from_bus=from_bus,
+        to_bus=to_bus,
+        case=case,
+        reversed=reversed,
     )
 
     with db.session() as session:
