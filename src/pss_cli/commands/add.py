@@ -33,7 +33,9 @@ app = typer.Typer()
 
 
 @app.command("scenario")
-def add_scenario(name: str, description: str = None, link_all_cases: bool = False):
+def add_scenario(
+    name: str, description: Optional[str] = None, link_all_cases: bool = False
+):
     """Add a scenario to the database"""
 
     scenario = Scenario(name=name, description=description)
