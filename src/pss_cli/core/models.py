@@ -11,20 +11,19 @@ class ScenarioCaseLink(SQLModel, table=True):
     )
     file_path: str
 
-    case: "Case" = Relationship(back_populates="case_links")
-    scenario: "Scenario" = Relationship(back_populates="scenario_links")
+    case: "Case" = Relationship(back_populates="scenario_links")
+    scenario: "Scenario" = Relationship(back_populates="case_links")
 
 
 class Scenario(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(unique=True)
     description: Optional[str] = None
-    cases: List["Case"] = Relationship(back_populates="scenarios")
     bus_values: List["ScenarioBusValues"] = Relationship(back_populates="scenario")
     branch_values: List["ScenarioBranchValues"] = Relationship(
         back_populates="scenario"
     )
-    scenario_links: List["ScenarioCaseLink"] = Relationship(back_populates="scenario")
+    case_links: List["ScenarioCaseLink"] = Relationship(back_populates="scenario")
 
 
 class Case(SQLModel, table=True):
@@ -34,15 +33,14 @@ class Case(SQLModel, table=True):
     md5_hash: str
     description: Optional[str] = None
     rel_path: Optional[str] = None
-    scenarios: List["Scenario"] = Relationship(back_populates="cases")
     dynamic_files: List["CaseDynamicFile"] = Relationship(back_populates="case")
     generating_systems: List["GeneratingSystem"] = Relationship(back_populates="case")
     inf_generator: "InfGenerator" = Relationship(back_populates="case")
     bus_data: List["CaseBusData"] = Relationship(back_populates="case")
-    branch_data: List["ScenarioBusValues"] = Relationship(back_populates="case")
+    branch_data: List["CaseBranchData"] = Relationship(back_populates="case")
     bus_values: List["ScenarioBusValues"] = Relationship(back_populates="case")
     branch_values: List["ScenarioBranchValues"] = Relationship(back_populates="case")
-    case_links: List["ScenarioCaseLink"] = Relationship(back_populates="case")
+    scenario_links: List["ScenarioCaseLink"] = Relationship(back_populates="case")
 
 
 class CaseDynamicFile(SQLModel, table=True):
@@ -128,7 +126,7 @@ class CaseBranchData(SQLModel, table=True):
     branch_id: str = Field(primary_key=True)
     from_bus_name: str
     to_bus_name: str
-    branch_values: "Case" = Relationship(back_populates="case")
+    case: "Case" = Relationship(back_populates="branch_data")
 
 
 class ScenarioBusValues(SQLModel, table=True):

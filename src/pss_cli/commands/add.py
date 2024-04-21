@@ -49,8 +49,8 @@ def add_scenario(name: str, description: str = None, link_all_cases: bool = Fals
     scenario_case_links = []
     for case in cases:
         case_file_path = pathlib.Path(case.file_path)  # type: ignore
-        extension = case_file_path.stem
-        file_name = f"{case.name} - {scenario.name}.{extension}"
+        extension = case_file_path.suffix
+        file_name = f"{case.name} - {scenario.name}{extension}"
         file_path = directory.joinpath(file_name)
 
         shutil.copy(src=case_file_path, dst=file_path)
