@@ -62,7 +62,7 @@ def add_scenario(name: str, description: str = None, link_all_cases: bool = Fals
         )
         scenario_case_links.append(scenario_case_link)
 
-    # TODO: Need to create a new file (copy) and add to db via association table
+    # TODO: Refactor into small functions
     # TODO: Should populate the scenario values extraction tables here
 
     with db.session() as session:
