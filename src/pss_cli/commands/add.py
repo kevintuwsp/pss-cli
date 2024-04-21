@@ -1,4 +1,7 @@
 import typer
+import pathlib
+import shutil
+import os
 
 from typing import Optional
 from typing_extensions import Annotated
@@ -9,6 +12,7 @@ from pss_cli.core.database import db
 from pss_cli.core.models import (
     Scenario,
     Case,
+    ScenarioCaseLink,
     GeneratingSystem,
     GeneratingSystemSetpoint,
     Generator,
@@ -22,6 +26,7 @@ from pss_cli.core.prompts import (
 )
 from pss_cli.core.ui import print_model
 from pss_cli.utils.hash import get_hash
+from pss_cli.core.config import SCENARIO_PATH
 
 
 app = typer.Typer()
@@ -38,14 +43,32 @@ def add_scenario(name: str, description: str = None, link_all_cases: bool = Fals
     else:
         cases = prompt_table("case", parameter="name")
 
-    scenario.cases = cases
+    directory = pathlib.Path(SCENARIO_PATH)
+    os.makedirs(directory, exist_ok=True)
+
+    scenario_case_links = []
+    for case in cases:
+        case_file_path = pathlib.Path(case.file_path)  # type: ignore
+        extension = case_file_path.stem
+        file_name = f"{case.name} - {scenario.name}.{extension}"
+        file_path = directory.joinpath(file_name)
+
+        shutil.copy(src=case_file_path, dst=file_path)
+
+        scenario_case_link = ScenarioCaseLink(
+            case=case,
+            scenario=scenario,
+            file_path=str(file_path),
+        )
+        scenario_case_links.append(scenario_case_link)
+
     # TODO: Need to create a new file (copy) and add to db via association table
+    # TODO: Should populate the scenario values extraction tables here
 
     with db.session() as session:
-        db.add(scenario, session=session)
-        print_model(scenario)
-        for case in scenario.cases:
-            print_model(case)
+        for obj in scenario_case_links:
+            session.add(obj)
+        session.commit()
 
 
 @app.command("case")
@@ -63,6 +86,7 @@ def add_case(
     md5_hash = get_hash(fpath)
 
     case = Case(name=name, file_path=str(fpath), md5_hash=md5_hash)
+    # TODO: Should populate the data extraction tables here
 
     with db.session() as session:
         db.add(case, session=session)
