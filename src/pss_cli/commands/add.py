@@ -98,7 +98,7 @@ def add_case(
     # TODO: Should populate the data extraction tables here
 
     with db.session() as session:
-        db.add(case, session=session)
+        db.add(case, session=session, commit=True)
 
         print("Added case to the database:")
         print_model(case)
@@ -124,7 +124,7 @@ def add_generating_system(name: str):
     )
 
     with db.session() as session:
-        db.add(generating_system, session=session)
+        db.add(generating_system, session=session, commit=True)
         print_model(generating_system)
 
 
@@ -140,7 +140,7 @@ def add_generator(bus_number: int, machine_id: int):
     )
 
     with db.session() as session:
-        db.add(generator, session=session)
+        db.add(generator, session=session, commit=True)
         print_model(generator)
 
 
@@ -167,7 +167,7 @@ def add_setpoint(
 
     with db.session() as session:
         try:
-            db.add(gs_setpoint, session=session)
+            db.add(gs_setpoint, session=session, commit=True)
 
         except IntegrityError:
             print(
