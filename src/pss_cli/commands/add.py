@@ -77,7 +77,10 @@ def add_scenario(
 
 @app.command("case")
 def add_case(
-    name: str, description: str = None, root_dir=".", match_pattern: str = "*.sav"
+    name: str,
+    description: Optional[str] = None,
+    root_dir=".",
+    match_pattern: str = "*.sav",
 ):
     """Add a case to the database"""
 
@@ -89,7 +92,9 @@ def add_case(
 
     md5_hash = get_hash(fpath)
 
-    case = Case(name=name, file_path=str(fpath), md5_hash=md5_hash)
+    case = Case(
+        name=name, description=description, file_path=str(fpath), md5_hash=md5_hash
+    )
     # TODO: Should populate the data extraction tables here
 
     with db.session() as session:
