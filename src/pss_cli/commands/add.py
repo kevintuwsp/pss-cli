@@ -49,7 +49,7 @@ def add_scenario(
     os.makedirs(directory, exist_ok=True)
 
     scenario_case_links = []
-    for case in cases:
+    for case in cases:  # type: ignore
         case_file_path = pathlib.Path(case.file_path)  # type: ignore
         extension = case_file_path.suffix
         file_name = f"{case.name} - {scenario.name}{extension}"
@@ -57,10 +57,12 @@ def add_scenario(
 
         shutil.copy(src=case_file_path, dst=file_path)
 
+        md5_hash = get_hash(file_path)
         scenario_case_link = ScenarioCaseLink(
             case=case,
             scenario=scenario,
             file_path=str(file_path),
+            md5_hash=md5_hash,
         )
         scenario_case_links.append(scenario_case_link)
 

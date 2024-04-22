@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel
+from sqlmodel import SQLModel, and_
 import typer
 
 from abc import ABC, abstractmethod
@@ -18,15 +18,17 @@ from pss_cli.core.models import (
     Scenario,
     ScenarioBusValues,
     ScenarioBranchValues,
+    ScenarioCaseLink,
 )
-
 
 app = typer.Typer()
 
 
 class ScenarioValuesObjExtractor(ABC):
     @abstractmethod
-    def extract_data_objs(self, case: Case, scenario: Scenario) -> Sequence[SQLModel]:
+    def extract_data_objs(
+        self, scenario_case_link: ScenarioCaseLink
+    ) -> Sequence[SQLModel]:
         raise NotImplementedError
 
 
@@ -93,16 +95,19 @@ class CaseBranchDataObjExtractor(CaseDataObjExtractor):
 
 class ScenarioBusValuesObjExtractor(ScenarioValuesObjExtractor):
     def extract_data_objs(
-        self, case: Case, scenario: Scenario
+        self, scenario_case_link: ScenarioCaseLink
     ) -> Sequence[ScenarioBusValues]:
         """Create a list of ScenarioBusValues objects to add to the database"""
 
-        # TODO: Need the file path of the scenario/case combo, not just the case
-        bus_values = extract_scenario_bus_values(case.file_path)
+        # NOTE: probably need better error handling
+        if not scenario_case_link:
+            print("No database row found.")
+
+        bus_values = extract_scenario_bus_values(scenario_case_link.file_path)  # type: ignore
         scenario_bus_values = [
             ScenarioBusValues(
-                case_id=case.id,
-                scenario_id=scenario.id,
+                case_id=scenario_case_link.case.id,
+                scenario_id=scenario_case_link.scenario.id,
                 bus_number=bus["bus_number"],
                 bus_voltage_pu=bus["bus_voltage_pu"],
                 bus_voltage_kv=bus["bus_voltage_kv"],
@@ -116,16 +121,19 @@ class ScenarioBusValuesObjExtractor(ScenarioValuesObjExtractor):
 
 class ScenarioBranchValuesObjExtractor(ScenarioValuesObjExtractor):
     def extract_data_objs(
-        self, case: Case, scenario: Scenario
+        self, scenario_case_link: ScenarioCaseLink
     ) -> Sequence[ScenarioBranchValues]:
         """Create a list of ScenarioBranchValues objects to add to the database"""
 
-        # TODO: Need the file path of the scenario/case combo, not just the case
-        branch_values = extract_scenario_branch_values(case.file_path)
+        # NOTE: probably need better error handling
+        if not scenario_case_link:
+            print("No database row found.")
+
+        branch_values = extract_scenario_branch_values(scenario_case_link.file_path)  # type: ignore
         scenario_branch_values = [
             ScenarioBranchValues(
-                case_id=case.id,
-                scenario_id=scenario.id,
+                case_id=scenario_case_link.case.id,
+                scenario_id=scenario_case_link.scenario.id,
                 from_bus_number=branch["from_bus_number"],
                 to_bus_number=branch["to_bus_number"],
                 branch_id=branch["branch_id"].strip(),
@@ -138,11 +146,14 @@ class ScenarioBranchValuesObjExtractor(ScenarioValuesObjExtractor):
         return scenario_branch_values
 
 
-@app.command("data")
+@app.command("case-data")
 def extract_case_data():
     """Extract case data and insert into database"""
 
-    creators = [CaseBusDataObjExtractor, CaseBranchDataObjExtractor]
+    creators = [
+        CaseBusDataObjExtractor,
+        CaseBranchDataObjExtractor,
+    ]
     cases = db.select_table("case")
 
     if not cases:
@@ -170,5 +181,47 @@ def extract_case_data():
             session.commit()
         except Exception as e:
             print(f"An error occurred while inserting data into the database: {e}")
+
+    print(f"[green]Added {len(objs)} rows to the database.[/green]")
+
+
+@app.command("scenario-data")
+def extract_scenario_data():
+    """Extract scenario data and insert into database"""
+
+    creators = [
+        ScenarioBusValuesObjExtractor,
+        ScenarioBranchValuesObjExtractor,
+    ]
+    session = db.session()
+    scenarios_case_links = db.select_table("scenariocaselink", session=session)
+
+    if not scenarios_case_links:
+        print("No scenario cases found in the database.")
+        return
+
+    # TODO: seems like a lot of steps, refactor to smaller functions, introduce facade pattern
+    # TODO: need to delete existing data, or only refresh if the hash is different
+
+    try:
+        objs = [
+            obj
+            for scenario_case_link in scenarios_case_links
+            for creator in creators
+            for obj in CaseDataObjExtractorFactory.create_extractor(
+                creator
+            ).extract_data_objs(
+                scenario_case_link,  # type: ignore
+            )  # type: ignore
+        ]
+        session.close()
+
+        for obj in objs:
+            session.add(obj)
+        session.commit()
+
+    except Exception as e:
+        print(f"An error occurred while extracting data: {e}")
+        return
 
     print(f"[green]Added {len(objs)} rows to the database.[/green]")

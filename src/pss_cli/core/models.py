@@ -10,7 +10,7 @@ class ScenarioCaseLink(SQLModel, table=True):
         default=None, primary_key=True, foreign_key="case.id"
     )
     file_path: str
-
+    md5_hash: str
     case: "Case" = Relationship(back_populates="scenario_links")
     scenario: "Scenario" = Relationship(back_populates="case_links")
 
@@ -132,7 +132,7 @@ class CaseBranchData(SQLModel, table=True):
 class ScenarioBusValues(SQLModel, table=True):
     case_id: Optional[int] = Field(primary_key=True, foreign_key="case.id")
     scenario_id: Optional[int] = Field(primary_key=True, foreign_key="scenario.id")
-    bus_number: int = Field(foreign_key="casebusdata.bus_number")
+    bus_number: int = Field(primary_key=True, foreign_key="casebusdata.bus_number")
     bus_voltage_pu: float
     bus_voltage_kv: float
     bus_voltage_angle_deg: float

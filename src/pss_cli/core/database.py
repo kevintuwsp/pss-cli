@@ -1,6 +1,7 @@
-from typing import List, Sequence, Union
+from typing import List, Optional, Sequence, Union
 from rich import print
 from sqlmodel import SQLModel, Session, select, create_engine
+from sqlalchemy import ColumnExpressionArgument, ColumnElement
 
 from pss_cli.core.ui import print_model
 
@@ -27,13 +28,23 @@ class Database:
         SQLModel.metadata.create_all(bind=self.engine)
 
     def select_table(
-        self, table_name: str
+        self,
+        table_name: str,
+        where: Optional[ColumnElement[bool]] = None,
+        session: Optional[Session] = None,
     ) -> Union[Sequence[SQLModel], Sequence[None], None]:
         """Return objects from the database table"""
 
         table_obj = self.get_table_object(table_name)
-        with Session(self.engine) as session:
-            results = session.exec(select(table_obj)).all()
+        statement = select(table_obj)
+        if where is not None:
+            statement = statement.where(where)
+
+        if not session:
+            with Session(self.engine) as session:
+                results = session.exec(statement).all()
+        else:
+            results = session.exec(statement).all()
 
         if None in results:
             return None
