@@ -65,8 +65,7 @@ class Database:
         if commit:
             session.commit()
             session.refresh(obj)
-        # print(f"Added {obj.__tablename__} object to the database:")
-        # print_model(obj)
+
         return obj
 
     def commit(self, session: Session):
