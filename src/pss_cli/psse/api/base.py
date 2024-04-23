@@ -12,16 +12,18 @@ from pss_cli.psse.api.case_data import PsseCaseDataMixin  # noqa: E402
 
 
 class PsseAPI(PsseCaseDataMixin, BaseModel):
-    def __init__(self):
-        self._initialised = False
+    initialised: bool = False
+
+    def __post_init__(self):
+        self.initialised = False
 
     def initialise(self, num_busses: int = 200000) -> None:
         """Initialise PSSE"""
 
-        if not self._initialised:
+        if not self.initialised:
             with SilenceStdout():
                 psspy.psseinit(num_busses)
-            self._initialised = True
+            self.initialised = True
 
     def load_case(self, fpath: str) -> None:
         """Load a PSSE case from disk"""

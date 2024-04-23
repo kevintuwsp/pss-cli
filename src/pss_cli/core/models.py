@@ -19,10 +19,9 @@ class Scenario(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(unique=True)
     description: Optional[str] = None
-    bus_values: List["ScenarioBusValues"] = Relationship(back_populates="scenario")
-    branch_values: List["ScenarioBranchValues"] = Relationship(
-        back_populates="scenario"
-    )
+    bus_values: List["BusValues"] = Relationship(back_populates="scenario")
+    branch_values: List["BranchValues"] = Relationship(back_populates="scenario")
+    machine_values: List["MachineValues"] = Relationship(back_populates="scenario")
     case_links: List["ScenarioCaseLink"] = Relationship(back_populates="scenario")
 
 
@@ -36,10 +35,12 @@ class Case(SQLModel, table=True):
     dynamic_files: List["CaseDynamicFile"] = Relationship(back_populates="case")
     generating_systems: List["GeneratingSystem"] = Relationship(back_populates="case")
     inf_generator: "InfGenerator" = Relationship(back_populates="case")
-    bus_data: List["CaseBusData"] = Relationship(back_populates="case")
-    branch_data: List["CaseBranchData"] = Relationship(back_populates="case")
-    bus_values: List["ScenarioBusValues"] = Relationship(back_populates="case")
-    branch_values: List["ScenarioBranchValues"] = Relationship(back_populates="case")
+    bus_definitions: List["BusDefinition"] = Relationship(back_populates="case")
+    branch_definitions: List["BranchDefinition"] = Relationship(back_populates="case")
+    machine_definitions: List["MachineDefinition"] = Relationship(back_populates="case")
+    bus_values: List["BusValues"] = Relationship(back_populates="case")
+    branch_values: List["BranchValues"] = Relationship(back_populates="case")
+    machine_values: List["MachineValues"] = Relationship(back_populates="case")
     scenario_links: List["ScenarioCaseLink"] = Relationship(back_populates="case")
 
 
@@ -116,7 +117,7 @@ class BusDefinition(SQLModel, table=True):
     bus_name: str
     bus_base_voltage: float
     bus_type: int
-    case: "Case" = Relationship(back_populates="bus_data")
+    case: "Case" = Relationship(back_populates="bus_definitions")
 
 
 class BranchDefinition(SQLModel, table=True):
@@ -126,7 +127,7 @@ class BranchDefinition(SQLModel, table=True):
     branch_id: str = Field(primary_key=True)
     from_bus_name: str
     to_bus_name: str
-    case: "Case" = Relationship(back_populates="branch_data")
+    case: "Case" = Relationship(back_populates="branch_definitions")
 
 
 class MachineDefinition(SQLModel, table=True):
@@ -134,7 +135,34 @@ class MachineDefinition(SQLModel, table=True):
     bus_number: int = Field(primary_key=True)
     machine_id: str = Field(primary_key=True)
     machine_name: str
-    case: "Case" = Relationship(back_populates="branch_data")
+    case: "Case" = Relationship(back_populates="machine_definitions")
+
+
+class BusValues(SQLModel, table=True):
+    case_id: Optional[int] = Field(primary_key=True, foreign_key="case.id")
+    scenario_id: Optional[int] = Field(primary_key=True, foreign_key="scenario.id")
+    bus_number: int = Field(primary_key=True, foreign_key="busdefinition.bus_number")
+    bus_voltage_pu: float
+    bus_voltage_kv: float
+    bus_voltage_angle_deg: float
+    case: "Case" = Relationship(back_populates="bus_values")
+    scenario: "Scenario" = Relationship(back_populates="bus_values")
+
+
+class BranchValues(SQLModel, table=True):
+    case_id: Optional[int] = Field(primary_key=True, foreign_key="case.id")
+    scenario_id: Optional[int] = Field(primary_key=True, foreign_key="scenario.id")
+    from_bus_number: int = Field(
+        primary_key=True, foreign_key="branchdefinition.from_bus_number"
+    )
+    to_bus_number: int = Field(
+        primary_key=True, foreign_key="branchdefinition.to_bus_number"
+    )
+    branch_id: str = Field(primary_key=True, foreign_key="branchdefinition.branch_id")
+    active_power_mw: float
+    reactive_power_mvar: float
+    case: "Case" = Relationship(back_populates="branch_values")
+    scenario: "Scenario" = Relationship(back_populates="branch_values")
 
 
 class MachineValues(SQLModel, table=True):
@@ -149,30 +177,5 @@ class MachineValues(SQLModel, table=True):
     pmin: float
     qmax: float
     qmin: float
-
-
-class BusValues(SQLModel, table=True):
-    case_id: Optional[int] = Field(primary_key=True, foreign_key="case.id")
-    scenario_id: Optional[int] = Field(primary_key=True, foreign_key="scenario.id")
-    bus_number: int = Field(primary_key=True, foreign_key="casebusdata.bus_number")
-    bus_voltage_pu: float
-    bus_voltage_kv: float
-    bus_voltage_angle_deg: float
-    case: "Case" = Relationship(back_populates="bus_values")
-    scenario: "Scenario" = Relationship(back_populates="bus_values")
-
-
-class BranchValues(SQLModel, table=True):
-    case_id: Optional[int] = Field(primary_key=True, foreign_key="case.id")
-    scenario_id: Optional[int] = Field(primary_key=True, foreign_key="scenario.id")
-    from_bus_number: int = Field(
-        primary_key=True, foreign_key="casebranchdata.from_bus_number"
-    )
-    to_bus_number: int = Field(
-        primary_key=True, foreign_key="casebranchdata.to_bus_number"
-    )
-    branch_id: str = Field(primary_key=True, foreign_key="casebranchdata.branch_id")
-    active_power_mw: float
-    reactive_power_mvar: float
-    case: "Case" = Relationship(back_populates="branch_values")
-    scenario: "Scenario" = Relationship(back_populates="branch_values")
+    case: "Case" = Relationship(back_populates="machine_values")
+    scenario: "Scenario" = Relationship(back_populates="machine_values")

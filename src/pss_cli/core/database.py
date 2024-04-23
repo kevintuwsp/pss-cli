@@ -49,15 +49,13 @@ class Database:
         if None in results:
             return None
 
-        print(results)
-
         return results
 
     def session(self):
         """Return a session object"""
         return Session(self.engine)
 
-    def add(self, obj: SQLModel, session: Session, commit: bool = True):
+    def add(self, obj: SQLModel, session: Session, commit: bool = True) -> SQLModel:
         """Add an object to the database"""
 
         session.add(obj)
@@ -67,6 +65,17 @@ class Database:
             session.refresh(obj)
 
         return obj
+
+    def delete(self, obj: SQLModel, session: Session, commit: bool = True) -> None:
+        """Add an object to the database"""
+
+        session.delete(obj)
+
+        if commit:
+            session.commit()
+            session.refresh(obj)
+
+        return None
 
     def commit(self, session: Session):
         """Commit the session"""

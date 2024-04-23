@@ -4,7 +4,7 @@ from typing_extensions import Annotated
 
 from pss_cli.core.database import db
 from pss_cli.core.prompts import prompt_table_names
-from pss_cli.core.ui import print_model
+from pss_cli.core.ui import print_model, print_models
 
 
 app = typer.Typer()
@@ -23,5 +23,6 @@ def get_table(name: Annotated[Optional[str], typer.Argument()] = None):
         print(f"Table '{name}' not found in the database")
         return
 
-    for result in results:
-        print_model(result)
+    print_models(results)
+    # for result in results:
+    #     print_model(result)
