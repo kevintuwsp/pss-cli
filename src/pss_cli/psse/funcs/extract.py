@@ -28,7 +28,7 @@ def extract_bus_definitions(fpath: str) -> List[Dict[str, Any]]:
         subsystem_type="bus",
         subsystem_info_mapper={
             "bus_number": "NUMBER",
-            "name": "NAME",
+            "bus_name": "NAME",
             "bus_base_voltage": "BASE",
             "bus_type": "TYPE",
         },
@@ -114,7 +114,7 @@ def extract_machine_values(
 
     info_dict = extract_data(
         fpath,
-        subsystem_type="machine",
+        subsystem_type="mach",
         subsystem_info_mapper={
             "bus_number": "NUMBER",
             "machine_id": "ID",

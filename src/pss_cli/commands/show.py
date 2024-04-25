@@ -24,5 +24,6 @@ def get_table(name: Annotated[Optional[str], typer.Argument()] = None):
         log.error(f"Table '{name}' not found in the database")
         return
 
-    for result in results:
-        print_model(result)  # type: ignore
+    print_models(results)
+    # for result in results:
+    #     print_model(result)

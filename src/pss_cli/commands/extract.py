@@ -29,7 +29,9 @@ app = typer.Typer()
 
 class ValuesObjExtractor(ABC):
     @abstractmethod
-    def extract(self, scenario_case_link: ScenarioCaseLink) -> Sequence[SQLModel]:
+    def extract(
+        self, scenario_case_link: ScenarioCaseLink, refresh: bool = True
+    ) -> Sequence[SQLModel]:
         raise NotImplementedError
 
 
@@ -43,7 +45,7 @@ class ValuesObjExtractorFactory:
 
 class DefinitionObjExtractor(ABC):
     @abstractmethod
-    def extract(self, case: Case) -> Sequence[SQLModel]:
+    def extract(self, case: Case, refresh: bool = True) -> Sequence[SQLModel]:
         raise NotImplementedError
 
 
@@ -56,7 +58,7 @@ class DefinitionObjExtractorFactory:
 
 
 class BusDefinitionObjExtractor(DefinitionObjExtractor):
-    def extract(self, case: Case) -> Sequence[BusDefinition]:
+    def extract(self, case: Case, refresh: bool = True) -> Sequence[BusDefinition]:
         """Create a list of BusDefintion objects to add to the database"""
 
         busses = extract_bus_definitions(case.file_path)
@@ -75,7 +77,7 @@ class BusDefinitionObjExtractor(DefinitionObjExtractor):
 
 
 class BranchDefinitionObjExtractor(DefinitionObjExtractor):
-    def extract(self, case: Case) -> Sequence[BranchDefinition]:
+    def extract(self, case: Case, refresh: bool = True) -> Sequence[BranchDefinition]:
         """Create a list of BranchDefintion objects to add to the database"""
 
         branches = extract_branch_definitions(case.file_path)
@@ -95,7 +97,7 @@ class BranchDefinitionObjExtractor(DefinitionObjExtractor):
 
 
 class MachineDefinitionObjExtractor(DefinitionObjExtractor):
-    def extract(self, case: Case) -> Sequence[MachineDefinition]:
+    def extract(self, case: Case, refresh: bool = True) -> Sequence[MachineDefinition]:
         """Create a list of MachineDefintion objects to add to the database"""
 
         machines = extract_machine_definitions(case.file_path)
@@ -113,7 +115,9 @@ class MachineDefinitionObjExtractor(DefinitionObjExtractor):
 
 
 class BusValuesObjExtractor(ValuesObjExtractor):
-    def extract(self, scenario_case_link: ScenarioCaseLink) -> Sequence[BusValues]:
+    def extract(
+        self, scenario_case_link: ScenarioCaseLink, refresh: bool = True
+    ) -> Sequence[BusValues]:
         """Create a list of ScenarioBusValues objects to add to the database"""
 
         # NOTE: probably need better error handling
@@ -137,7 +141,9 @@ class BusValuesObjExtractor(ValuesObjExtractor):
 
 
 class BranchValuesObjExtractor(ValuesObjExtractor):
-    def extract(self, scenario_case_link: ScenarioCaseLink) -> Sequence[BranchValues]:
+    def extract(
+        self, scenario_case_link: ScenarioCaseLink, refresh: bool = True
+    ) -> Sequence[BranchValues]:
         """Create a list of ScenarioBranchValues objects to add to the database"""
 
         # NOTE: probably need better error handling
@@ -162,7 +168,9 @@ class BranchValuesObjExtractor(ValuesObjExtractor):
 
 
 class MachineValuesObjExtractor(ValuesObjExtractor):
-    def extract(self, scenario_case_link: ScenarioCaseLink) -> Sequence[MachineValues]:
+    def extract(
+        self, scenario_case_link: ScenarioCaseLink, refresh: bool = True
+    ) -> Sequence[MachineValues]:
         """Create a list of MachineValues objects to add to the database"""
 
         # NOTE: probably need better error handling

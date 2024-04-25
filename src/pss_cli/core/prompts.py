@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Sequence
 from pathlib import Path
 from InquirerPy.inquirer import fuzzy, checkbox
 from sqlmodel import SQLModel
@@ -73,7 +73,7 @@ def prompt_select_table(table_name: str, parameter: Optional[str]) -> SQLModel:
     return results
 
 
-def prompt_table(table_name: str, parameter: str) -> SQLModel:
+def prompt_table(table_name: str, parameter: str) -> Sequence[SQLModel]:
     """Return a checkbox selection of table rows from the database"""
 
     objects = db.select_table(table_name)

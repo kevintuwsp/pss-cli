@@ -1,5 +1,4 @@
 from typing import List, Optional, Sequence, Union
-from rich import print
 from sqlmodel import SQLModel, Session, select, create_engine
 from sqlalchemy import ColumnElement
 
