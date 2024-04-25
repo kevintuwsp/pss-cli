@@ -4,7 +4,7 @@ from typing_extensions import Annotated
 
 from pss_cli.core.database import db
 from pss_cli.core.prompts import prompt_table_names
-from pss_cli.core.ui import print_model
+from pss_cli.core.ui import print_models
 from pss_cli.core.logging import log
 
 
