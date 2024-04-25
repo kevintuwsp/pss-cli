@@ -3,7 +3,6 @@ import typer
 
 from abc import ABC, abstractmethod
 from typing import Sequence, Type
-from rich import print
 from pss_cli.psse.funcs.extract import (
     extract_bus_definitions,
     extract_branch_definitions,
@@ -13,6 +12,7 @@ from pss_cli.psse.funcs.extract import (
     extract_machine_values,
 )
 from pss_cli.core.database import db
+from pss_cli.core.loggin import log
 from pss_cli.core.models import (
     Case,
     BusDefinition,
@@ -118,7 +118,7 @@ class BusValuesObjExtractor(ValuesObjExtractor):
 
         # NOTE: probably need better error handling
         if not scenario_case_link:
-            print("No database row found.")
+            log.error("No database row found.")
 
         bus_values = extract_bus_values(scenario_case_link.file_path)  # type: ignore
         objs = [
@@ -142,7 +142,7 @@ class BranchValuesObjExtractor(ValuesObjExtractor):
 
         # NOTE: probably need better error handling
         if not scenario_case_link:
-            print("No database row found.")
+            log.error("No database row found.")
 
         branch_values = extract_branch_values(scenario_case_link.file_path)  # type: ignore
         objs = [
@@ -167,7 +167,7 @@ class MachineValuesObjExtractor(ValuesObjExtractor):
 
         # NOTE: probably need better error handling
         if not scenario_case_link:
-            print("No database row found.")
+            log.error("No database row found.")
 
         machine_values = extract_machine_values(scenario_case_link.file_path)  # type: ignore
         objs = [
@@ -203,7 +203,7 @@ def extract_case_data():
     cases = db.select_table("case")
 
     if not cases:
-        print("No cases found in the database.")
+        log.error("No cases found in the database.")
         return
 
     try:
@@ -217,7 +217,7 @@ def extract_case_data():
         ]
 
     except Exception as e:
-        print(f"An error occurred while extracting data: {e}")
+        log.error(f"An error occurred while extracting data: {e}")
         return
 
     with db.session() as session:
@@ -226,9 +226,9 @@ def extract_case_data():
                 session.add(obj)
             session.commit()
         except Exception as e:
-            print(f"An error occurred while inserting data into the database: {e}")
+            log.error(f"An error occurred while inserting data into the database: {e}")
 
-    print(f"[green]Added {len(objs)} rows to the database.[/green]")
+    log.info(f"[green]Added {len(objs)} rows to the database.[/green]")
 
 
 @app.command("scenario-data")
@@ -244,7 +244,7 @@ def extract_scenario_data():
     scenarios_case_links = db.select_table("scenariocaselink", session=session)
 
     if not scenarios_case_links:
-        print("No scenario cases found in the database.")
+        log.error("No scenario cases found in the database.")
         return
 
     # TODO: seems like a lot of steps, refactor to smaller functions, introduce facade pattern
@@ -266,7 +266,7 @@ def extract_scenario_data():
         session.commit()
 
     except Exception as e:
-        print(f"An error occurred while extracting data: {e}")
+        log.error(f"An error occurred while extracting data: {e}")
         return
 
-    print(f"[green]Added {len(objs)} rows to the database.[/green]")
+    log.info(f"[green]Added {len(objs)} rows to the database.[/green]")

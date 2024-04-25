@@ -126,6 +126,10 @@ class BranchDefinition(SQLModel, table=True):
     branch_id: str = Field(primary_key=True)
     from_bus_name: str
     to_bus_name: str
+    pos_seq_impedance_pu: float
+    zero_seq_impedance_pu: float
+    pos_seq_charging_capacitance_pu: float
+    zero_seq_charging_capacitance_pu: float
     case: "Case" = Relationship(back_populates="branch_data")
 
 

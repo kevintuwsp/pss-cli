@@ -1,6 +1,7 @@
-from rich import print
 from rich.panel import Panel
 from sqlmodel import SQLModel
+
+from pss_cli.core.logging import log
 
 
 def print_model(
@@ -16,4 +17,4 @@ def print_model(
         )
 
     title = model.__tablename__
-    print(Panel(" | ".join(key_values), expand=False, title=title))
+    log.info(Panel(" | ".join(key_values), expand=False, title=title))

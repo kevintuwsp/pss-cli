@@ -1,9 +1,9 @@
 from typing import List, Optional, Sequence, Union
 from rich import print
 from sqlmodel import SQLModel, Session, select, create_engine
-from sqlalchemy import ColumnExpressionArgument, ColumnElement
+from sqlalchemy import ColumnElement
 
-from pss_cli.core.ui import print_model
+from pss_cli.core.logging import log
 
 
 class Database:
@@ -24,7 +24,6 @@ class Database:
         return tables_dict.get(table_name)
 
     def create_db_and_tables(self):
-        print("Creating database and tables")
         SQLModel.metadata.create_all(bind=self.engine)
 
     def select_table(
@@ -49,7 +48,7 @@ class Database:
         if None in results:
             return None
 
-        print(results)
+        log.info(results)
 
         return results
 
@@ -65,7 +64,8 @@ class Database:
         if commit:
             session.commit()
             session.refresh(obj)
-
+        # print(f"Added {obj.__tablename__} object to the database:")
+        # print_model(obj)
         return obj
 
     def commit(self, session: Session):

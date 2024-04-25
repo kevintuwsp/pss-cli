@@ -5,7 +5,6 @@ import os
 
 from typing import Optional
 from typing_extensions import Annotated
-from rich import print
 from sqlalchemy.exc import IntegrityError
 
 from pss_cli.core.database import db
@@ -27,6 +26,7 @@ from pss_cli.core.prompts import (
 from pss_cli.core.ui import print_model
 from pss_cli.utils.hash import get_hash
 from pss_cli.core.config import SCENARIO_PATH
+from pss_cli.core.logging import log
 
 
 app = typer.Typer()
@@ -77,25 +77,30 @@ def add_scenario(
 
 @app.command("case")
 def add_case(
-    name: str, description: str = None, root_dir=".", match_pattern: str = "*.sav"
+    name: str,
+    description: Optional[str] = None,
+    root_dir=".",
+    match_pattern: str = "*.sav",
 ):
     """Add a case to the database"""
 
     fpath = prompt_case_path(root_dir, match_pattern)
 
     if not fpath:
-        print("No file selected.")
+        log.error("No file selected.")
         return
 
     md5_hash = get_hash(fpath)
 
-    case = Case(name=name, file_path=str(fpath), md5_hash=md5_hash)
+    case = Case(
+        name=name, description=description, file_path=str(fpath), md5_hash=md5_hash
+    )
     # TODO: Should populate the data extraction tables here
 
     with db.session() as session:
         db.add(case, session=session, commit=True)
 
-        print("Added case to the database:")
+        log.info("Added case to the database:")
         print_model(case)
 
 
@@ -147,7 +152,7 @@ def add_setpoint(
     """Add a P and/or Q setpoint to a generating system"""
 
     if not (p_setpoint or q_setpoint):
-        print("Please provide either a P setpoint or Q setpoint")
+        log.error("Please provide either a P setpoint or Q setpoint")
         return
 
     scenario = prompt_select_table("scenario", parameter="name")
@@ -164,13 +169,12 @@ def add_setpoint(
         try:
             db.add(gs_setpoint, session=session, commit=True)
 
-        except IntegrityError:
-            print(
+        except IntegrityError as e:
+            log.error(
                 "The generating system already has an existing setpoint for this scenario"
             )
+            log.error(e)
             session.rollback()
-            print_model(scenario)
-            print_model(generating_system)
             return
 
         print_model(gs_setpoint)

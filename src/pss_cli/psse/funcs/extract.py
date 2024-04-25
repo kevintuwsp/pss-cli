@@ -48,6 +48,10 @@ def extract_branch_definitions(fpath: str) -> List[Dict[str, Any]]:
             "branch_id": "ID",
             "from_bus_name": "FROMNAME",
             "to_bus_name": "TONAME",
+            "pos_seq_impedance_pu": "RX",
+            "zero_seq_impedance_pu": "RXZERO",
+            "pos_seq_charging_capacitance_pu": "CHARGING",
+            "zero_seq_charging_capacitance_pu": "CHARGINGZERO",
         },
     )
     return info_dict
