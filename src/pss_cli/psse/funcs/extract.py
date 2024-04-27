@@ -72,6 +72,69 @@ def extract_machine_definitions(fpath: str) -> List[Dict[str, Any]]:
     return info_dict
 
 
+def extract_two_winding_transformer_definitions(fpath: str) -> List[Dict[str, Any]]:
+    """Extract PSSE case two winding transformer data"""
+
+    info_dict = extract_data(
+        fpath,
+        subsystem_type="trn",
+        subsystem_info_mapper={
+            "from_bus_number": "FROMNUMBER",
+            "to_bus_number": "TONUMBER",
+            "branch_id": "ID",
+            "xfr_name": "XFRNAME",
+            "pos_seq_impedance_pu": "RXNOM",
+            "zero_seq_impedance_pu": "RXZERO",
+            "vector_group": "VECTORGROUP",
+            "controlled_bus_number": "ICONTNUMBER",
+        },
+    )
+
+    return info_dict
+
+
+def extract_three_winding_transformer_definitions(fpath: str) -> List[Dict[str, Any]]:
+    """Extract PSSE case three winding transformer data"""
+
+    info_dict = extract_data(
+        fpath,
+        subsystem_type="tr3",
+        subsystem_info_mapper={
+            "winding_1_bus_number": "WIND1NUMBER",
+            "winding_2_bus_number": "WIND2NUMBER",
+            "winding_3_bus_number": "WIND3NUMBER",
+            "branch_id": "ID",
+            "xfr_name": "XFRNAME",
+            "pos_seq_impedance_1_2_pu": "RX1-2NOM",
+            "pos_seq_impedance_2_3_pu": "RX2-3NOM",
+            "pos_seq_impedance_3_1_pu": "RX3-1NOM",
+            "zero_seq_impedance_1_pu": "Z01",
+            "zero_seq_impedance_2_pu": "Z02",
+            "zero_seq_impedance_3_pu": "Z03",
+            "vector_group": "VECTORGROUP",
+        },
+    )
+
+    return info_dict
+
+
+def extract_winding_definitions(fpath: str) -> List[Dict[str, Any]]:
+    """Extract three winding transformer winding data"""
+
+    # TODO: Incomplete, need more values
+    info_dict = extract_data(
+        fpath,
+        subsystem_type="wnd",
+        subsystem_info_mapper={
+            "winding_bus_number": "WNDBUSNUMBER",
+            "winding_number": "WNDNUMBER",
+            "controlled_bus_number": "ICONTNUMBER",
+        },
+    )
+
+    return info_dict
+
+
 def extract_bus_values(fpath: str) -> List[Dict[str, Any]]:
     """Extract PSSE scenario bus values"""
 
