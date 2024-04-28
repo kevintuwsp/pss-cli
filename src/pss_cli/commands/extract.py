@@ -1,3 +1,4 @@
+from operator import pos
 from sqlmodel import SQLModel, and_
 import typer
 
@@ -7,20 +8,24 @@ from pss_cli.psse.funcs.extract import (
     extract_bus_definitions,
     extract_branch_definitions,
     extract_machine_definitions,
+    extract_two_winding_transformer_definitions,
     extract_bus_values,
     extract_branch_values,
     extract_machine_values,
+    extract_two_winding_transformer_values,
 )
 from pss_cli.core.database import db
-from pss_cli.core.loggin import log
+from pss_cli.core.logging import log
 from pss_cli.core.models import (
     Case,
     BusDefinition,
     BranchDefinition,
     MachineDefinition,
+    TwoWindingTransformerDefinition,
     BusValues,
     BranchValues,
     MachineValues,
+    TwoWindingTransformerValues,
     ScenarioCaseLink,
 )
 
@@ -89,6 +94,12 @@ class BranchDefinitionObjExtractor(DefinitionObjExtractor):
                 branch_id=branch["branch_id"].strip(),
                 from_bus_name=branch["from_bus_name"].strip(),
                 to_bus_name=branch["to_bus_name"].strip(),
+                pos_seq_r_pu=branch["pos_seq_z_pu"].real,
+                pos_seq_x_pu=branch["pos_seq_z_pu"].imag,
+                zero_seq_r_pu=branch["zero_seq_z_pu"].real,
+                zero_seq_x_pu=branch["zero_seq_z_pu"].imag,
+                pos_seq_b_pu=branch["pos_seq_b_pu"],
+                zero_seq_b_pu=branch["zero_seq_b_pu"],
             )
             for branch in branches
         ]
@@ -109,6 +120,38 @@ class MachineDefinitionObjExtractor(DefinitionObjExtractor):
                 machine_id=machine["machine_id"].strip(),
             )
             for machine in machines
+        ]
+
+        return objs
+
+
+class TwoWindingTransformerDefinitionObjExtractor(DefinitionObjExtractor):
+    def extract(
+        self, case: Case, refresh: bool = True
+    ) -> Sequence[TwoWindingTransformerDefinition]:
+        """Create a list of TwoWindingTransformerDefinition objects to add to the database"""
+
+        transformers = extract_two_winding_transformer_definitions(case.file_path)
+        objs = [
+            TwoWindingTransformerDefinition(
+                case_id=case.id,
+                from_bus_number=transformer["from_bus_number"],
+                to_bus_number=transformer["to_bus_number"],
+                branch_id=transformer["branch_id"].strip(),
+                xfr_name=transformer["xfr_name"],
+                pos_seq_r_pu=transformer["pos_seq_impedance_pu"].real,
+                pos_seq_x_pu=transformer["pos_seq_impedance_pu"].imag,
+                zero_seq_r_pu=transformer["zero_seq_impedance_pu"].real,
+                zero_seq_x_pu=transformer["zero_seq_impedance_pu"].imag,
+                vector_group=transformer["vector_group"],
+                controlled_bus_number=transformer["controlled_bus_number"],
+                sbase_mva=transformer["sbase_mva"],
+                rmax_pu=transformer["rmax_pu"],
+                rmin_pu=transformer["rmin_pu"],
+                vmax_pu=transformer["vmax_pu"],
+                vmin_pu=transformer["vmin_pu"],
+            )
+            for transformer in transformers
         ]
 
         return objs
@@ -198,6 +241,34 @@ class MachineValuesObjExtractor(ValuesObjExtractor):
         return objs
 
 
+class TwoWindingTransformerValuesObjExtractor(ValuesObjExtractor):
+    def extract(
+        self, scenario_case_link: ScenarioCaseLink, refresh: bool = True
+    ) -> Sequence[TwoWindingTransformerValues]:
+        """Create a list of TwoWindingTransformerValues objects to add to the database"""
+
+        # NOTE: probably need better error handling
+        if not scenario_case_link:
+            log.error("No database row found.")
+
+        transformer_values = extract_two_winding_transformer_values(
+            scenario_case_link.file_path
+        )  # type: ignore
+        objs = [
+            TwoWindingTransformerValues(
+                case_id=scenario_case_link.case.id,
+                scenario_id=scenario_case_link.scenario.id,
+                from_bus_number=transformer["from_bus_number"],
+                to_bus_number=transformer["to_bus_number"],
+                branch_id=transformer["branch_id"].strip(),
+                ratio=transformer["ratio"],
+            )
+            for transformer in transformer_values
+        ]
+
+        return objs
+
+
 @app.command("case-data")
 def extract_case_data():
     """Extract case data and insert into database"""
@@ -207,6 +278,7 @@ def extract_case_data():
         BusDefinitionObjExtractor,
         BranchDefinitionObjExtractor,
         MachineDefinitionObjExtractor,
+        TwoWindingTransformerDefinitionObjExtractor,
     ]
     cases = db.select_table("case")
 
@@ -247,6 +319,7 @@ def extract_scenario_data():
         BusValuesObjExtractor,
         BranchValuesObjExtractor,
         MachineValuesObjExtractor,
+        TwoWindingTransformerValuesObjExtractor,
     ]
     session = db.session()
     scenarios_case_links = db.select_table("scenariocaselink", session=session)

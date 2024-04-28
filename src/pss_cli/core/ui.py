@@ -33,7 +33,7 @@ def print_models(models: Sequence[Union[SQLModel, None]]):
     if models[0] is None:
         console.print("No results to show.")
 
-    table = Table(title=models[0].__tablename__, show_lines=True)  # type: ignore
+    table = Table(title=models[0].__tablename__, show_lines=False)  # type: ignore
 
     columns = models[0].model_dump().keys()  # type: ignore
     for column in columns:

@@ -48,10 +48,10 @@ def extract_branch_definitions(fpath: str) -> List[Dict[str, Any]]:
             "branch_id": "ID",
             "from_bus_name": "FROMNAME",
             "to_bus_name": "TONAME",
-            "pos_seq_impedance_pu": "RX",
-            "zero_seq_impedance_pu": "RXZERO",
-            "pos_seq_charging_capacitance_pu": "CHARGING",
-            "zero_seq_charging_capacitance_pu": "CHARGINGZERO",
+            "pos_seq_z_pu": "RX",
+            "zero_seq_z_pu": "RXZERO",
+            "pos_seq_b_pu": "CHARGING",
+            "zero_seq_b_pu": "CHARGINGZERO",
         },
     )
     return info_dict
@@ -87,6 +87,11 @@ def extract_two_winding_transformer_definitions(fpath: str) -> List[Dict[str, An
             "zero_seq_impedance_pu": "RXZERO",
             "vector_group": "VECTORGROUP",
             "controlled_bus_number": "ICONTNUMBER",
+            "rmax_pu": "RMAX",
+            "rmin_pu": "RMIN",
+            "vmax_pu": "VMAX",
+            "vmin_pu": "VMIN",
+            "sbase_mva": "SBASE1",
         },
     )
 
@@ -129,6 +134,13 @@ def extract_winding_definitions(fpath: str) -> List[Dict[str, Any]]:
             "winding_bus_number": "WNDBUSNUMBER",
             "winding_number": "WNDNUMBER",
             "controlled_bus_number": "ICONTNUMBER",
+            "number_of_taps": "NTPOSN",
+            "ratio": "RATIO",
+            "rmax_pu": "RMAX",
+            "rmin_pu": "RMIN",
+            "vmax_pu": "VMAX",
+            "vmin_pu": "VMIN",
+            "sbase_mva": "SBASE",
         },
     )
 
@@ -190,4 +202,21 @@ def extract_machine_values(
             "qmin": "QMIN",
         },
     )
+    return info_dict
+
+
+def extract_two_winding_transformer_values(fpath: str) -> List[Dict[str, Any]]:
+    """Extract PSSE case two winding transformer values"""
+
+    info_dict = extract_data(
+        fpath,
+        subsystem_type="trn",
+        subsystem_info_mapper={
+            "from_bus_number": "FROMNUMBER",
+            "to_bus_number": "TONUMBER",
+            "branch_id": "ID",
+            "ratio": "RATIO",
+        },
+    )
+
     return info_dict

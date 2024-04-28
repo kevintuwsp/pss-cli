@@ -3,6 +3,7 @@ from sqlmodel import SQLModel, Session, select, create_engine
 from sqlalchemy import ColumnElement
 
 from pss_cli.core.logging import log
+from pss_cli.core.models import Case
 
 
 class Database:
@@ -39,15 +40,13 @@ class Database:
             statement = statement.where(where)
 
         if not session:
-            with Session(self.engine) as session:
+            with self.session() as session:
                 results = session.exec(statement).all()
         else:
             results = session.exec(statement).all()
 
         if None in results:
             return None
-
-        log.info(results)
 
         return results
 
