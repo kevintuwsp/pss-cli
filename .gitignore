@@ -9,4 +9,5 @@ wheels/
 # venv
 .venv
 .example_project
+.pss_cli_data
 *.db

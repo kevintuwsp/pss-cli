@@ -33,7 +33,6 @@ pluggy==1.2.0
     # via pss-cli
 prompt-toolkit==3.0.43
     # via inquirerpy
-    # via questionary
 pssepath==0.2.3
     # via pss-cli
 pydantic==2.5.3
@@ -44,8 +43,6 @@ pyfzf==0.3.1
     # via pss-cli
 pygments==2.17.2
     # via rich
-questionary==1.10.0
-    # via pss-cli
 rich==13.7.1
     # via pss-cli
     # via typer
