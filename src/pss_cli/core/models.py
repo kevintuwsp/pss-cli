@@ -20,12 +20,15 @@ class Scenario(SQLModel, table=True):
     name: str = Field(unique=True)
     description: Optional[str] = None
     bus_values: List["BusValues"] = Relationship(back_populates="scenario")
-    branch_values: List["BranchValues"] = Relationship(back_populates="scenario")
-    machine_values: List["MachineValues"] = Relationship(back_populates="scenario")
+    branch_values: List["BranchValues"] = Relationship(
+        back_populates="scenario")
+    machine_values: List["MachineValues"] = Relationship(
+        back_populates="scenario")
     two_winding_transformer_values: List["TwoWindingTransformerValues"] = Relationship(
         back_populates="scenario"
     )
-    case_links: List["ScenarioCaseLink"] = Relationship(back_populates="scenario")
+    case_links: List["ScenarioCaseLink"] = Relationship(
+        back_populates="scenario")
 
 
 class Case(SQLModel, table=True):
@@ -35,12 +38,17 @@ class Case(SQLModel, table=True):
     md5_hash: str
     description: Optional[str] = None
     rel_path: Optional[str] = None
-    dynamic_files: List["CaseDynamicFile"] = Relationship(back_populates="case")
-    generating_systems: List["GeneratingSystem"] = Relationship(back_populates="case")
+    dynamic_files: List["CaseDynamicFile"] = Relationship(
+        back_populates="case")
+    generating_systems: List["GeneratingSystem"] = Relationship(
+        back_populates="case")
     inf_generator: "InfGenerator" = Relationship(back_populates="case")
-    bus_definitions: List["BusDefinition"] = Relationship(back_populates="case")
-    branch_definitions: List["BranchDefinition"] = Relationship(back_populates="case")
-    machine_definitions: List["MachineDefinition"] = Relationship(back_populates="case")
+    bus_definitions: List["BusDefinition"] = Relationship(
+        back_populates="case")
+    branch_definitions: List["BranchDefinition"] = Relationship(
+        back_populates="case")
+    machine_definitions: List["MachineDefinition"] = Relationship(
+        back_populates="case")
     two_winding_transformer_definitions: List["TwoWindingTransformerDefinition"] = (
         Relationship(back_populates="case")
     )
@@ -50,7 +58,8 @@ class Case(SQLModel, table=True):
     two_winding_transformer_values: List["TwoWindingTransformerValues"] = Relationship(
         back_populates="case"
     )
-    scenario_links: List["ScenarioCaseLink"] = Relationship(back_populates="case")
+    scenario_links: List["ScenarioCaseLink"] = Relationship(
+        back_populates="case")
 
 
 class CaseDynamicFile(SQLModel, table=True):
@@ -69,7 +78,8 @@ class GeneratingSystem(SQLModel, table=True):
     reversed: bool = Field(default=False)
     case_id: Optional[int] = Field(default=None, foreign_key="case.id")
     case: "Case" = Relationship(back_populates="generating_systems")
-    generators: List["Generator"] = Relationship(back_populates="generating_systems")
+    generators: List["Generator"] = Relationship(
+        back_populates="generating_systems")
     setpoints: "GeneratingSystemSetpoint" = Relationship(
         back_populates="generating_system"
     )
@@ -82,7 +92,8 @@ class Generator(SQLModel, table=True):
     generating_system_id: Optional[int] = Field(
         default=None, foreign_key="generatingsystem.id"
     )
-    generating_systems: "GeneratingSystem" = Relationship(back_populates="generators")
+    generating_systems: "GeneratingSystem" = Relationship(
+        back_populates="generators")
 
 
 class InfGenerator(SQLModel, table=True):
@@ -105,7 +116,8 @@ class GeneratingSystemSetpoint(SQLModel, table=True):
 
     p_setpoint: Optional[float] = None
     q_setpoint: Optional[float] = None
-    generating_system: "GeneratingSystem" = Relationship(back_populates="setpoints")
+    generating_system: "GeneratingSystem" = Relationship(
+        back_populates="setpoints")
 
 
 class InfGeneratorSetpoint(SQLModel, table=True):
@@ -170,13 +182,16 @@ class TwoWindingTransformerDefinition(SQLModel, table=True):
     rmin_pu: float
     vmax_pu: float
     vmin_pu: float
-    case: "Case" = Relationship(back_populates="two_winding_transformer_definitions")
+    case: "Case" = Relationship(
+        back_populates="two_winding_transformer_definitions")
 
 
 class BusValues(SQLModel, table=True):
     case_id: Optional[int] = Field(primary_key=True, foreign_key="case.id")
-    scenario_id: Optional[int] = Field(primary_key=True, foreign_key="scenario.id")
-    bus_number: int = Field(primary_key=True, foreign_key="busdefinition.bus_number")
+    scenario_id: Optional[int] = Field(
+        primary_key=True, foreign_key="scenario.id")
+    bus_number: int = Field(
+        primary_key=True, foreign_key="busdefinition.bus_number")
     bus_voltage_pu: float
     bus_voltage_kv: float
     bus_voltage_angle_deg: float
@@ -186,14 +201,16 @@ class BusValues(SQLModel, table=True):
 
 class BranchValues(SQLModel, table=True):
     case_id: Optional[int] = Field(primary_key=True, foreign_key="case.id")
-    scenario_id: Optional[int] = Field(primary_key=True, foreign_key="scenario.id")
+    scenario_id: Optional[int] = Field(
+        primary_key=True, foreign_key="scenario.id")
     from_bus_number: int = Field(
         primary_key=True, foreign_key="branchdefinition.from_bus_number"
     )
     to_bus_number: int = Field(
         primary_key=True, foreign_key="branchdefinition.to_bus_number"
     )
-    branch_id: str = Field(primary_key=True, foreign_key="branchdefinition.branch_id")
+    branch_id: str = Field(
+        primary_key=True, foreign_key="branchdefinition.branch_id")
     active_power_mw: float
     reactive_power_mvar: float
     case: "Case" = Relationship(back_populates="branch_values")
@@ -202,7 +219,8 @@ class BranchValues(SQLModel, table=True):
 
 class MachineValues(SQLModel, table=True):
     case_id: Optional[int] = Field(primary_key=True, foreign_key="case.id")
-    scenario_id: Optional[int] = Field(primary_key=True, foreign_key="scenario.id")
+    scenario_id: Optional[int] = Field(
+        primary_key=True, foreign_key="scenario.id")
     bus_number: int = Field(primary_key=True)
     machine_id: str = Field(primary_key=True)
     mbase_mva: float
@@ -218,7 +236,8 @@ class MachineValues(SQLModel, table=True):
 
 class TwoWindingTransformerValues(SQLModel, table=True):
     case_id: Optional[int] = Field(primary_key=True, foreign_key="case.id")
-    scenario_id: Optional[int] = Field(primary_key=True, foreign_key="scenario.id")
+    scenario_id: Optional[int] = Field(
+        primary_key=True, foreign_key="scenario.id")
     from_bus_number: int = Field(
         primary_key=True, foreign_key="twowindingtransformerdefinition.from_bus_number"
     )
@@ -229,5 +248,7 @@ class TwoWindingTransformerValues(SQLModel, table=True):
         primary_key=True, foreign_key="twowindingtransformerdefinition.branch_id"
     )
     ratio: float
-    case: "Case" = Relationship(back_populates="two_winding_transformer_values")
-    scenario: "Scenario" = Relationship(back_populates="two_winding_transformer_values")
+    case: "Case" = Relationship(
+        back_populates="two_winding_transformer_values")
+    scenario: "Scenario" = Relationship(
+        back_populates="two_winding_transformer_values")
