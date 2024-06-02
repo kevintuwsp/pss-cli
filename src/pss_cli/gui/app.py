@@ -1,29 +1,39 @@
-import PyQt5.QtWidgets as qtw
+import os
+import PyQt5.QtWidgets as QtWidgets
+import PyQt5.QtGui as QtGui
+import PyQt5.QtCore as QtCore
 
-from pss_cli.gui.widgets.sidebar import Sidebar
-from pss_cli.gui.widgets.sqlview import SQLView
+from pss_cli.gui.widgets import (
+    MenuBar,
+    StatusBar,
+    SQLView,
+    Sidebar,
+)
+
+basedir = os.path.abspath(os.path.dirname(__file__))
+main_icon = os.path.join(
+    basedir, "assets/icons8-database-administrator-48.png")
 
 
-class MainWindow(qtw.QWidget):
+class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("SQL Table models")
-        self.setLayout(qtw.QHBoxLayout())
-        # self.label = qtw.QLabel("SQL Table models")
-        # self.layout().addWidget(self.label)
-        self.show()
-        self.sidebar = Sidebar()
-        self.layout().addWidget(self.sidebar)
-
-        self.sql_view = SQLView()
-        self.sql_view.set_table_view("busdefinition")
-        self.layout().addWidget(self.sql_view, 1)
+        self.setWindowTitle("PSS Application")
+        self.setWindowIcon(QtGui.QIcon(main_icon))
         self.setMinimumSize(800, 600)
 
-        self.sidebar.list_view.clicked.connect(self.sql_view.set_table_view_from_index)
+        self._menu_bar = MenuBar()
+        self._status_bar = StatusBar()
+        self._sql_view = SQLView()
+        self._sidebar = Sidebar()
 
+        self.setMenuBar(self._menu_bar)
+        self.setStatusBar(self._status_bar)
+        self.addDockWidget(
+            QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, self._sidebar)
+        self.setCentralWidget(self._sql_view)
+        self.show()
 
-if __name__ == "__main__":
-    app = qtw.QApplication([])
-    mw = MainWindow()
-    app.exec_()
+        self._sidebar.list_view.clicked.connect(
+            self._sql_view.set_table_view_from_index
+        )

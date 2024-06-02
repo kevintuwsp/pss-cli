@@ -1,34 +1,27 @@
+from typing import Union
 import PyQt5.QtWidgets as QtWidgets
 import PyQt5.QtCore as QtCore
 from pss_cli.core.database import db
 
 
-class Sidebar(QtWidgets.QWidget):
+class UnEditableQStringListModel(QtCore.QStringListModel):
+    def flags(self, index) -> Union[int, QtCore.Qt.ItemFlags]:
+        return QtCore.Qt.ItemFlag.ItemIsEnabled | QtCore.Qt.ItemFlag.ItemIsSelectable  # noqa: E501
+
+
+class Sidebar(QtWidgets.QDockWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("SQL Table models")
-        self.setLayout(QtWidgets.QVBoxLayout())
-        self.label = QtWidgets.QLabel("SQL Table models")
-        self.layout().addWidget(self.label)
-        self.show()
+        self.setContentsMargins(0, 0, 0, 0)
         self.list_view = self.get_list_view()
-        self.set_widget(self.list_view)
-        self.setMinimumSize(200, 600)
-
-    def clear_layout(self) -> None:
-        """Clears the layout of the widget."""
-        for i in reversed(range(self.layout().count())):
-            self.layout().itemAt(i).widget().setParent(None)
-
-    def set_widget(self, widget) -> None:
-        """Sets the widget to the layout."""
-        self.clear_layout()
-        self.layout().addWidget(widget)
+        self.setWidget(self.list_view)
+        self.setMinimumWidth(self.list_view.sizeHint().width())
 
     def get_list_view(self) -> QtWidgets.QListView:
         """Returns a list view of all the tables in the database."""
         tables = db.get_all_table_names()
         list_view = QtWidgets.QListView()
-        list_view.setModel(QtCore.QStringListModel(tables))
+        list_view.setModel(UnEditableQStringListModel(tables))
 
         return list_view

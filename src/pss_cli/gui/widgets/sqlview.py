@@ -7,11 +7,13 @@ import PyQt5.QtWidgets as QtWidgets
 class SQLView(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
+        self._layout = QtWidgets.QVBoxLayout()
+        self._layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(self._layout)
         self.setWindowTitle("SQL Table models")
-        self.setLayout(QtWidgets.QHBoxLayout())
-        self.show()
         self.qdb = self.init_db()
         self.model = QtSql.QSqlTableModel()
+        self.set_table_view("case")
 
     def init_db(self) -> QtSql.QSqlDatabase:
         qdb = QtSql.QSqlDatabase.addDatabase("QSQLITE")
@@ -34,10 +36,13 @@ class SQLView(QtWidgets.QWidget):
     def set_table_view(self, table_name: str) -> None:
         """Adds a table view to the layout."""
         self.set_table_model(table_name)
-        view = QtWidgets.QTableView()
-        view.setModel(self.model)
+        self.view = QtWidgets.QTableView()
+        self.view.setModel(self.model)
+        self.view.resizeColumnsToContents()
         self.clear_layout()
-        self.layout().addWidget(view)
+        self.label = QtWidgets.QLabel("Database rows")
+        self._layout.addWidget(self.label)
+        self._layout.addWidget(self.view)
 
     def set_table_view_from_index(self, index: QModelIndex) -> None:
         """Sets the table view from the index."""
