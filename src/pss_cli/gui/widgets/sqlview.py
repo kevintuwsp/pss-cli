@@ -1,4 +1,5 @@
 import sys
+from typing import Optional
 from PyQt5.QtCore import QModelIndex
 import PyQt5.QtSql as QtSql
 import PyQt5.QtWidgets as QtWidgets
@@ -14,7 +15,7 @@ editable_tables = [
 
 
 class SQLView(QtWidgets.QWidget):
-    def __init__(self, parent: QtWidgets.QTabWidget = None):
+    def __init__(self, parent: Optional[QtWidgets.QTabWidget] = None):
         super().__init__(parent)
         self.parent = parent
         self._layout = QtWidgets.QVBoxLayout()
@@ -42,7 +43,9 @@ class SQLView(QtWidgets.QWidget):
 
         self.model.setTable(table_name)
         self.model.select()
-        self.parent.setCurrentWidget(self)
+        self.parent.setCurrentWidget(self)  # type: ignore
+        if table_name not in editable_tables:
+            self.view.setEditTriggers(QtWidgets.QTableView.NoEditTriggers)
 
     def set_table_view(self, table_name: str) -> None:
         """Adds a table view to the layout."""
@@ -53,10 +56,7 @@ class SQLView(QtWidgets.QWidget):
         self.clear_layout()
         self._layout.addWidget(self.view)
 
-        if table_name not in editable_tables:
-            self.view.setEditTriggers(QtWidgets.QTableView.NoEditTriggers)
-
     def set_table_view_from_index(self, index: QModelIndex) -> None:
         """Sets the table view from the index."""
         table_name = index.data()
-        self.set_table_view(table_name)
+        self.set_table_model(table_name)

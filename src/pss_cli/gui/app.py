@@ -48,8 +48,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.setMenuBar(self._menu_bar)
         self.setStatusBar(self._status_bar)
-        self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self._sidebar)
+
         self.setCentralWidget(self._central_window)
+        self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self._sidebar)
         self.addDockWidget(
             QtCore.Qt.DockWidgetArea.BottomDockWidgetArea, self._output_window
         )
