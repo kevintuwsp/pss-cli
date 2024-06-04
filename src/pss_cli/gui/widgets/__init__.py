@@ -5,3 +5,4 @@ from .statusbar import StatusBar
 from .settingseditor import SettingsTree
 from .central import CentralWindow
 from .outputwindow import OutputWindow
+from .contextactions import ContextActionsWidget

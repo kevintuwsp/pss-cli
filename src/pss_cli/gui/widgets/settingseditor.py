@@ -40,6 +40,8 @@ class SettingsTree(QtWidgets.QTreeWidget):
 
         self.setSettingsObject(settings)
 
+        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+
     def setSettingsObject(self, settings):
         self.settings = settings
         self.clear()
@@ -226,7 +228,8 @@ class VariantDelegate(QtWidgets.QItemDelegate):
         self.pointExp.setPattern("\\((-?[0-9]*),(-?[0-9]*)\\)")
 
         self.rectExp = QtCore.QRegExp()
-        self.rectExp.setPattern("\\((-?[0-9]*),(-?[0-9]*),(-?[0-9]*),(-?[0-9]*)\\)")
+        self.rectExp.setPattern(
+            "\\((-?[0-9]*),(-?[0-9]*),(-?[0-9]*),(-?[0-9]*)\\)")
 
         self.signedIntegerExp = QtCore.QRegExp()
         self.signedIntegerExp.setPattern("-?[0-9]*")
@@ -340,7 +343,8 @@ class VariantDelegate(QtWidgets.QItemDelegate):
                 return
         elif isinstance(originalValue, QtCore.QPoint):
             self.pointExp.exactMatch(text)
-            value = QtCore.QPoint(int(self.pointExp.cap(1)), int(self.pointExp.cap(2)))
+            value = QtCore.QPoint(int(self.pointExp.cap(1)),
+                                  int(self.pointExp.cap(2)))
         elif isinstance(originalValue, QtCore.QRect):
             self.rectExp.exactMatch(text)
             value = QtCore.QRect(
@@ -351,7 +355,8 @@ class VariantDelegate(QtWidgets.QItemDelegate):
             )
         elif isinstance(originalValue, QtCore.QSize):
             self.sizeExp.exactMatch(text)
-            value = QtCore.QSize(int(self.sizeExp.cap(1)), int(self.sizeExp.cap(2)))
+            value = QtCore.QSize(int(self.sizeExp.cap(1)),
+                                 int(self.sizeExp.cap(2)))
         elif isinstance(originalValue, list):
             value = text.split(",")
         else:

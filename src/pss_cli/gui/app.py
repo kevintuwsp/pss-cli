@@ -11,12 +11,14 @@ from pss_cli.gui.widgets import (
     Sidebar,
     OutputWindow,
     CentralWindow,
+    ContextActionsWidget,
 )
 from pss_cli.gui.settings import settings
 
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-main_icon = os.path.join(basedir, "assets/icons8-database-administrator-48.png")
+main_icon = os.path.join(
+    basedir, "assets/icons8-database-administrator-48.png")
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -45,14 +47,19 @@ class MainWindow(QtWidgets.QMainWindow):
         self._central_window = CentralWindow()
         self._sidebar = Sidebar()
         self._output_window = OutputWindow()
+        self._context_actions = ContextActionsWidget()
 
         self.setMenuBar(self._menu_bar)
         self.setStatusBar(self._status_bar)
 
         self.setCentralWidget(self._central_window)
-        self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self._sidebar)
+        self.addDockWidget(
+            QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self._sidebar)
         self.addDockWidget(
             QtCore.Qt.DockWidgetArea.BottomDockWidgetArea, self._output_window
+        )
+        self.addDockWidget(
+            QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, self._context_actions
         )
         self.show()
 

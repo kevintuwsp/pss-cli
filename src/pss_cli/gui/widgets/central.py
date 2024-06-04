@@ -10,6 +10,6 @@ class CentralWindow(QtWidgets.QTabWidget):
         self._sql_view = SQLView(self)
         self._settings_tree = SettingsTree()
         self.addTab(self._sql_view, "SQL View")
-        self.addTab(self._settings_tree, "Settings Tree")
+        self.addTab(self._settings_tree, "Settings")
 
         self.show()

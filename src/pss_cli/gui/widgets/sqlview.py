@@ -24,6 +24,7 @@ class SQLView(QtWidgets.QWidget):
         self.setWindowTitle("SQL Table models")
         self.qdb = self.init_db()
         self.model = QtSql.QSqlRelationalTableModel()
+        self.delegate = QtSql.QSqlRelationalDelegate(self)
         self.set_table_view("case")
 
     def init_db(self) -> QtSql.QSqlDatabase:
@@ -46,12 +47,16 @@ class SQLView(QtWidgets.QWidget):
         self.parent.setCurrentWidget(self)  # type: ignore
         if table_name not in editable_tables:
             self.view.setEditTriggers(QtWidgets.QTableView.NoEditTriggers)
+        else:
+            self.view.setEditTriggers(QtWidgets.QTableView.DoubleClicked)
 
     def set_table_view(self, table_name: str) -> None:
         """Adds a table view to the layout."""
-        self.set_table_model(table_name)
         self.view = QtWidgets.QTableView()
+        self.view.setSortingEnabled(True)
+        self.set_table_model(table_name)
         self.view.setModel(self.model)
+        self.view.setItemDelegate(self.delegate)
         self.view.resizeColumnsToContents()
         self.clear_layout()
         self._layout.addWidget(self.view)
