@@ -2,9 +2,6 @@ from typing import List, Optional, Sequence, Union
 from sqlmodel import SQLModel, Session, select, create_engine
 from sqlalchemy import ColumnElement
 
-from pss_cli.core.logging import log
-from pss_cli.core.models import Case
-
 
 class Database:
     def __init__(self, sqlite_filename: str):

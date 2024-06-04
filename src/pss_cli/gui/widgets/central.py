@@ -1,25 +1,15 @@
 import PyQt5.QtWidgets as QtWidgets
 
-from pss_cli.gui.widgets import Sidebar, SQLView
+from pss_cli.gui.widgets import SQLView, SettingsTree
 
 
-class CentralWindow(QtWidgets.QWidget):
+class CentralWindow(QtWidgets.QTabWidget):
     def __init__(self):
         super().__init__()
-        self._layout = QtWidgets.QHBoxLayout()
 
-        self.setLayout(self._layout)
-        self._layout.setContentsMargins(0, 0, 0, 0)
-        self._layout.setSpacing(0)
-
-        self._sidebar = Sidebar()
-        self._layout.addWidget(self._sidebar)
-
-        self._sql_view = SQLView()
-        self._layout.addWidget(self._sql_view, 1)
-
-        self._sidebar.list_view.clicked.connect(
-            self._sql_view.set_table_view_from_index
-        )
+        self._sql_view = SQLView(self)
+        self._settings_tree = SettingsTree()
+        self.addTab(self._sql_view, "SQL View")
+        self.addTab(self._settings_tree, "Settings Tree")
 
         self.show()

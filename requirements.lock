@@ -14,6 +14,8 @@ click==8.1.7
     # via typer
 colorama==0.4.6
     # via click
+darkdetect==0.7.1
+    # via pyqtdarktheme
 greenlet==3.0.3
     # via sqlalchemy
 importlib-metadata==6.7.0
@@ -49,6 +51,8 @@ pyqt5-qt5==5.15.2
     # via pyqt5
 pyqt5-sip==12.13.0
     # via pyqt5
+pyqtdarktheme==2.1.0
+    # via pss-cli
 rich==13.7.1
     # via pss-cli
     # via typer

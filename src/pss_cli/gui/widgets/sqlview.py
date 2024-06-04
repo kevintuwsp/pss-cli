@@ -3,16 +3,26 @@ from PyQt5.QtCore import QModelIndex
 import PyQt5.QtSql as QtSql
 import PyQt5.QtWidgets as QtWidgets
 
+editable_tables = [
+    "case",
+    "scenario",
+    "generatingsystem",
+    "generator",
+    "infgenerator",
+    "generatingsystemsetpoint",
+]
+
 
 class SQLView(QtWidgets.QWidget):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent: QtWidgets.QTabWidget = None):
+        super().__init__(parent)
+        self.parent = parent
         self._layout = QtWidgets.QVBoxLayout()
         self._layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self._layout)
         self.setWindowTitle("SQL Table models")
         self.qdb = self.init_db()
-        self.model = QtSql.QSqlTableModel()
+        self.model = QtSql.QSqlRelationalTableModel()
         self.set_table_view("case")
 
     def init_db(self) -> QtSql.QSqlDatabase:
@@ -32,6 +42,7 @@ class SQLView(QtWidgets.QWidget):
 
         self.model.setTable(table_name)
         self.model.select()
+        self.parent.setCurrentWidget(self)
 
     def set_table_view(self, table_name: str) -> None:
         """Adds a table view to the layout."""
@@ -40,9 +51,10 @@ class SQLView(QtWidgets.QWidget):
         self.view.setModel(self.model)
         self.view.resizeColumnsToContents()
         self.clear_layout()
-        self.label = QtWidgets.QLabel("Database rows")
-        self._layout.addWidget(self.label)
         self._layout.addWidget(self.view)
+
+        if table_name not in editable_tables:
+            self.view.setEditTriggers(QtWidgets.QTableView.NoEditTriggers)
 
     def set_table_view_from_index(self, index: QModelIndex) -> None:
         """Sets the table view from the index."""

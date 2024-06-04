@@ -11,7 +11,7 @@ from pss_cli.utils.regex import (
     get_parameters_from_obj,
 )
 from pss_cli.core.database import db
-from pss_cli.core.logging import log
+from pss_cli.core.logging import logger
 
 
 def prompt_bool(message: str) -> bool:
@@ -34,7 +34,7 @@ def prompt_case_path(root_dir: str, match_pattern: str):
     _root_dir = Path(root_dir).absolute()
 
     if not files:
-        log.error(
+        logger.error(
             f"No files with match-pattern '{match_pattern}' found within"
             f"'{_root_dir}' and subdirectories."
         )
@@ -79,7 +79,7 @@ def prompt_select_table(
     ).execute()
 
     if None in results:
-        log.error("No results found.")
+        logger.error("No results found.")
         return None
 
     return results
@@ -100,7 +100,7 @@ def prompt_table(table_name: str, parameter: str) -> Sequence[SQLModel]:
     ).execute()
 
     if None in results:
-        log.error("No results found.")
+        logger.error("No results found.")
         return None
 
     return results

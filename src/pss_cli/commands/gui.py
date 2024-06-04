@@ -1,12 +1,7 @@
-import sys
 import typer
 import PyQt5.QtWidgets as qtw
-import PyQt5.QtGui as qtg
-import PyQt5.QtCore as qtc
-from PyQt5 import QtWidgets, QtSql
 
 from pss_cli.gui.app import MainWindow
-from pss_cli.core.database import db
 
 app = typer.Typer()
 
@@ -15,15 +10,16 @@ app = typer.Typer()
 def show():
     typer.echo("Showing...")
     app = qtw.QApplication([])
+
     mw = MainWindow()
 
     app.exec_()
+
 
 @app.command()
 def icons():
     import sys
     from PyQt5.QtWidgets import QApplication, QGridLayout, QPushButton, QStyle, QWidget
-
 
     class Window(QWidget):
         def __init__(self):
@@ -41,7 +37,6 @@ def icons():
                 layout.addWidget(btn, n / 4, n % 4)
 
             self.setLayout(layout)
-
 
     app = QApplication(sys.argv)
 

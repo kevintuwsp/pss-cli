@@ -1,7 +1,6 @@
-from operator import pos
-from sqlmodel import SQLModel, and_
 import typer
 
+from sqlmodel import SQLModel
 from abc import ABC, abstractmethod
 from typing import Sequence, Type
 from pss_cli.psse.funcs.extract import (
@@ -14,8 +13,9 @@ from pss_cli.psse.funcs.extract import (
     extract_machine_values,
     extract_two_winding_transformer_values,
 )
+
 from pss_cli.core.database import db
-from pss_cli.core.logging import log
+from pss_cli.core.logging import logger
 from pss_cli.core.models import (
     Case,
     BusDefinition,
@@ -165,7 +165,7 @@ class BusValuesObjExtractor(ValuesObjExtractor):
 
         # NOTE: probably need better error handling
         if not scenario_case_link:
-            log.error("No database row found.")
+            logger.error("No database row found.")
 
         bus_values = extract_bus_values(scenario_case_link.file_path)  # type: ignore
         objs = [
@@ -191,7 +191,7 @@ class BranchValuesObjExtractor(ValuesObjExtractor):
 
         # NOTE: probably need better error handling
         if not scenario_case_link:
-            log.error("No database row found.")
+            logger.error("No database row found.")
 
         branch_values = extract_branch_values(scenario_case_link.file_path)  # type: ignore
         objs = [
@@ -218,7 +218,7 @@ class MachineValuesObjExtractor(ValuesObjExtractor):
 
         # NOTE: probably need better error handling
         if not scenario_case_link:
-            log.error("No database row found.")
+            logger.error("No database row found.")
 
         machine_values = extract_machine_values(scenario_case_link.file_path)  # type: ignore
         objs = [
@@ -249,7 +249,7 @@ class TwoWindingTransformerValuesObjExtractor(ValuesObjExtractor):
 
         # NOTE: probably need better error handling
         if not scenario_case_link:
-            log.error("No database row found.")
+            logger.error("No database row found.")
 
         transformer_values = extract_two_winding_transformer_values(
             scenario_case_link.file_path
@@ -283,7 +283,7 @@ def extract_case_data():
     cases = db.select_table("case")
 
     if not cases:
-        log.error("No cases found in the database.")
+        logger.error("No cases found in the database.")
         return
 
     try:
@@ -297,7 +297,7 @@ def extract_case_data():
         ]
 
     except Exception as e:
-        log.error(f"An error occurred while extracting data: {e}")
+        logger.error(f"An error occurred while extracting data: {e}")
         return
 
     with db.session() as session:
@@ -306,9 +306,13 @@ def extract_case_data():
                 session.add(obj)
             session.commit()
         except Exception as e:
-            log.error(f"An error occurred while inserting data into the database: {e}")
+            logger.error(
+                "An error occurred while inserting data" "into the database: {}".format(
+                    e
+                )
+            )
 
-    log.info(f"[green]Added {len(objs)} rows to the database.[/green]")
+    logger.info(f"[green]Added {len(objs)} rows to the database.[/green]")
 
 
 @app.command("scenario-data")
@@ -325,7 +329,7 @@ def extract_scenario_data():
     scenarios_case_links = db.select_table("scenariocaselink", session=session)
 
     if not scenarios_case_links:
-        log.error("No scenario cases found in the database.")
+        logger.error("No scenario cases found in the database.")
         return
 
     # TODO: seems like a lot of steps, refactor to smaller functions, introduce facade pattern
@@ -347,7 +351,7 @@ def extract_scenario_data():
         session.commit()
 
     except Exception as e:
-        log.error(f"An error occurred while extracting data: {e}")
+        logger.error(f"An error occurred while extracting data: {e}")
         return
 
-    log.info(f"[green]Added {len(objs)} rows to the database.[/green]")
+    logger.info(f"[green]Added {len(objs)} rows to the database.[/green]")

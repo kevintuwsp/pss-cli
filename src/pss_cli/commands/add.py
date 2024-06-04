@@ -26,7 +26,7 @@ from pss_cli.core.prompts import (
 from pss_cli.core.ui import print_models, print_model
 from pss_cli.utils.hash import get_hash
 from pss_cli.core.config import SCENARIO_PATH
-from pss_cli.core.logging import log
+from pss_cli.core.logging import logger
 
 
 app = typer.Typer()
@@ -87,7 +87,7 @@ def add_case(
     fpath = prompt_case_path(root_dir, match_pattern)
 
     if not fpath:
-        log.error("No file selected.")
+        logger.error("No file selected.")
         return
 
     md5_hash = get_hash(fpath)
@@ -100,7 +100,7 @@ def add_case(
     with db.session() as session:
         db.add(case, session=session, commit=True)
 
-        log.info("Added case to the database:")
+        logger.info("Added case to the database:")
         print_model(case)
 
 
@@ -157,7 +157,7 @@ def add_setpoint(
     """Add a P and/or Q setpoint to a generating system"""
 
     if not (p_setpoint or q_setpoint):
-        log.error("Please provide either a P setpoint or Q setpoint")
+        logger.error("Please provide either a P setpoint or Q setpoint")
         return
 
     scenario = prompt_select_table("scenario", parameter="name")
@@ -175,10 +175,10 @@ def add_setpoint(
             db.add(gs_setpoint, session=session, commit=True)
 
         except IntegrityError as e:
-            log.error(
+            logger.error(
                 "The generating system already has an existing setpoint for this scenario"
             )
-            log.error(e)
+            logger.error(e)
             session.rollback()
             return
 

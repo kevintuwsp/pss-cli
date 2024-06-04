@@ -15,6 +15,8 @@ click==8.1.7
 colorama==0.4.6
     # via click
     # via pytest
+darkdetect==0.7.1
+    # via pyqtdarktheme
 exceptiongroup==1.2.0
     # via pytest
 greenlet==3.0.3
@@ -58,6 +60,8 @@ pyqt5-qt5==5.15.2
     # via pyqt5
 pyqt5-sip==12.13.0
     # via pyqt5
+pyqtdarktheme==2.1.0
+    # via pss-cli
 pytest==7.4.4
 rich==13.7.1
     # via pss-cli

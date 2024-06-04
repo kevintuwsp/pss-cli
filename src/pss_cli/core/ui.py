@@ -5,8 +5,6 @@ from rich.panel import Panel
 from rich.table import Table
 from sqlmodel import SQLModel
 
-from pss_cli.core.logging import log
-
 
 def print_model(
     model: SQLModel,

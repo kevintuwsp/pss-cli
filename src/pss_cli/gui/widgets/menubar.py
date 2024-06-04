@@ -1,4 +1,7 @@
 import PyQt5.QtWidgets as QtWidgets
+import qdarktheme
+
+from pss_cli.gui.settings import settings
 
 
 class MenuBar(QtWidgets.QMenuBar):
@@ -9,6 +12,8 @@ class MenuBar(QtWidgets.QMenuBar):
         self._edit_menu = self.addMenu("Edit")
         self._view_menu = self.addMenu("View")
         self._help_menu = self.addMenu("Help")
+
+        self._set_theme = self._view_menu.addMenu("Set Theme")
 
         self._create_actions()
 
@@ -34,6 +39,23 @@ class MenuBar(QtWidgets.QMenuBar):
         self._save_action.setShortcut("Ctrl+S")
 
         self._new_action.setStatusTip("Create a new file")
+
+        self._dark_theme = QtWidgets.QAction("Dark Theme", self)
+        self._light_theme = QtWidgets.QAction("Light Theme", self)
+
+        self._set_theme.addAction(self._dark_theme)
+        self._set_theme.addAction(self._light_theme)
+
+        self._dark_theme.triggered.connect(self._set_dark_theme)
+        self._light_theme.triggered.connect(self._set_light_theme)
+
+    def _set_light_theme(self):
+        qdarktheme.setup_theme("light")
+        settings.setValue("gui/theme", "light")
+
+    def _set_dark_theme(self):
+        qdarktheme.setup_theme("dark")
+        settings.setValue("gui/theme", "dark")
 
     def _new(self):
         print("Creating a new file")
