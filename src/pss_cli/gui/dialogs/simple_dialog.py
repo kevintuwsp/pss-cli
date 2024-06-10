@@ -4,6 +4,9 @@ import PyQt5.QtWidgets as QtWidgets
 from PyQt5.QtCore import pyqtSlot
 
 from pss_cli.gui.widgets.checkable_combobox import CheckableComboBox
+from pss_cli.gui.settings import settings
+
+error_color = settings.value("gui/error_color")
 
 
 class SimpleDialogMeta(ABCMeta, type(QtWidgets.QDialog)):
@@ -82,7 +85,7 @@ class SimpleDialog(QtWidgets.QDialog, SimpleDialogWidget):
 
     def add_required_label(self):
         self.required_label = QtWidgets.QLabel(
-            "Required fields are marked with <span style='color: red;'>*</span>"
+            f"Required fields are marked with <span style='color: {error_color};'>*</span>"
         )
         self.add_widget(self.required_label)
 
@@ -103,7 +106,7 @@ class SimpleDialog(QtWidgets.QDialog, SimpleDialogWidget):
         self.accept()
 
     def color_required(self, widget: QtWidgets.QWidget):
-        widget.setStyleSheet("border: 1px solid red;")
+        widget.setStyleSheet(f"border: 1px solid {error_color};")
 
     def color_normal(self):
         for widget in self._required:

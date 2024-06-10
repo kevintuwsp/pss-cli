@@ -16,7 +16,7 @@ class ScenarioCaseLink(SQLModel, table=True):
     )
     scenario: "Scenario" = Relationship(
         back_populates="case_links",
-        sa_relationship_kwargs={"cascade": "all, delete"},
+        # sa_relationship_kwargs={"cascade": "all, delete"},
     )
 
 

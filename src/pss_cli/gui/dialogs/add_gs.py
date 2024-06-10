@@ -26,7 +26,6 @@ class AddGeneratingSystem(SimpleDialog):
 
         if not cases:
             logger.error("No cases found in the database")
-            return
 
         self.case_name_edit = QtWidgets.QComboBox()
         self.case_name_edit.addItems([str(case.name) for case in cases])  # type: ignore
@@ -45,7 +44,7 @@ class AddGeneratingSystem(SimpleDialog):
         self.machine_ids = []
         self.add_generator_button = QtWidgets.QPushButton("Add Generator")
 
-        self.add_widget(self.case_name_edit, "Case Name", required=False)
+        self.add_widget(self.case_name_edit, "Case Name", required=True)
         self.add_widget(self.case_description, "Case Description", required=False)
         self.add_widget(self.case_filepath, "Case Filepath", required=False)
         self.add_widget(self.gs_name_edit, "Name", required=True)
@@ -57,10 +56,11 @@ class AddGeneratingSystem(SimpleDialog):
         self.add_widget(self.reversed, "Reversed", required=False)
         self.add_widget(self.add_generator_button, required=False)
 
-        self.update_case_info()
-        self.update_from_bus_name()
-        self.update_to_bus_name()
-        self.update_generators()
+        if cases:
+            self.update_case_info()
+            self.update_from_bus_name()
+            self.update_to_bus_name()
+            self.update_generators()
 
         self.case_name_edit.currentTextChanged.connect(self.update_case_info)
         self.from_bus_no.currentTextChanged.connect(self.update_from_bus_name)
@@ -130,6 +130,8 @@ class AddGeneratingSystem(SimpleDialog):
         """Update the generators based on the selected case and bus numbers."""
 
         case = self.controller.get_case(self.case_name_edit.currentText())
+        if not case:
+            return
         generator_bus_numbers = [
             str(bus_number)
             for bus_number in self.controller.get_generator_bus_numbers(case)
@@ -167,7 +169,10 @@ class AddGeneratingSystem(SimpleDialog):
         """Update the to bus numbers based on the selected case and from bus number."""
 
         case = self.controller.get_case(self.case_name_edit.currentText())
-        from_bus_no = int(self.from_bus_no.currentText())
+        try:
+            from_bus_no = int(self.from_bus_no.currentText())
+        except ValueError:
+            return
         bus_numbers = self.controller.get_branch_to_bus_numbers(case, from_bus_no)
         str_bus_numbers = [str(bus_no) for bus_no in bus_numbers]
         self.to_bus_no.clear()

@@ -24,7 +24,6 @@ class AddScenario(SimpleDialog):
 
         if not objects:
             logger.error("No cases found in the database")
-            return
 
         self.cases_dict = {case.name: case for case in objects}  # type: ignore
 

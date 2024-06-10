@@ -167,6 +167,36 @@ class Controller(ABC, BaseModel):
 
         return generating_system
 
+    def get_files(self, root_dir: str, pattern="*.sav") -> List[pathlib.Path]:
+        """Return a list of files in the root directory"""
+
+        files = list(pathlib.Path(root_dir).rglob(pattern))
+        return files
+
+    def create_scenario_file(self, scenario: Scenario, case: Case):
+        """Create a file for the scenario"""
+
+        case_file_path = pathlib.Path(case.file_path)
+        scenario_file_path = self.get_scenario_file_path(scenario, case)
+        os.makedirs(scenario_file_path.parent, exist_ok=True)
+        shutil.copy(src=case_file_path, dst=scenario_file_path)
+
+        return scenario_file_path
+
+    def get_scenario_filename(self, scenario: Scenario, case: Case) -> str:
+        """Create a filename for the scenario"""
+
+        case_file_path = pathlib.Path(case.file_path)
+        extension = case_file_path.suffix
+        return f"{case.name} - {scenario.name}{extension}"
+
+    def get_scenario_file_path(self, scenario: Scenario, case: Case) -> pathlib.Path:
+        """Get the file path for the scenario"""
+
+        directory = pathlib.Path(SCENARIO_PATH)
+        file_name = self.get_scenario_filename(scenario, case)
+        return directory.joinpath(file_name)
+
 
 class ScenarioController(Controller):
     def __init__(self):
@@ -213,30 +243,6 @@ class ScenarioController(Controller):
             db.delete(scenario, session=session)
             logger.info(f"Deleted scenario from the database: {scenario.name}")
 
-    def create_scenario_file(self, scenario: Scenario, case: Case):
-        """Create a file for the scenario"""
-
-        case_file_path = pathlib.Path(case.file_path)
-        scenario_file_path = self.get_scenario_file_path(scenario, case)
-        os.makedirs(scenario_file_path.parent, exist_ok=True)
-        shutil.copy(src=case_file_path, dst=scenario_file_path)
-
-        return scenario_file_path
-
-    def get_scenario_filename(self, scenario: Scenario, case: Case) -> str:
-        """Create a filename for the scenario"""
-
-        case_file_path = pathlib.Path(case.file_path)
-        extension = case_file_path.suffix
-        return f"{case.name} - {scenario.name}{extension}"
-
-    def get_scenario_file_path(self, scenario: Scenario, case: Case) -> pathlib.Path:
-        """Get the file path for the scenario"""
-
-        directory = pathlib.Path(SCENARIO_PATH)
-        file_name = self.get_scenario_filename(scenario, case)
-        return directory.joinpath(file_name)
-
 
 class CaseController(Controller):
     """Manages the cases in the project"""
@@ -244,19 +250,31 @@ class CaseController(Controller):
     def __init__(self):
         super().__init__()
 
-    def add(self, name: str, description: str, file_path: str):
+    def add(
+        self, name: str, description: str, file_path: str, scenarios: List[Scenario]
+    ):
         """Add a case to the database"""
 
         md5_hash = get_hash(file_path)
-        case = Case(
-            name=name,
-            description=description,
-            file_path=file_path,
-            md5_hash=md5_hash,
-        )
-
         with db.session() as session:
-            db.add(case, session=session, commit=True)
+            case = Case(
+                name=name,
+                description=description,
+                file_path=file_path,
+                md5_hash=md5_hash,
+            )
+
+            for scenario in scenarios:
+                scenario_file_path = self.create_scenario_file(scenario, case)
+                scenario_case_link = ScenarioCaseLink(
+                    scenario=scenario,
+                    case=case,
+                    file_path=str(scenario_file_path),
+                    md5_hash=get_hash(str(scenario_file_path)),
+                )
+                session.add(scenario_case_link)
+            session.add(case)
+            session.commit()
             session.refresh(case)
 
             bus_definitions = BusDefinitionObjExtractor().extract(case)
@@ -265,13 +283,11 @@ class CaseController(Controller):
             two_winding_transformer_definitions = (
                 TwoWindingTransformerDefinitionObjExtractor().extract(case)
             )
-            db.add_all(bus_definitions, session=session, commit=False)
-            db.add_all(branch_definitions, session=session, commit=False)
-            db.add_all(machine_definitions, session=session, commit=False)
-            db.add_all(
-                two_winding_transformer_definitions, session=session, commit=False
-            )
-            db.commit(session)
+            session.add_all(bus_definitions)
+            session.add_all(branch_definitions)
+            session.add_all(machine_definitions)
+            session.add_all(two_winding_transformer_definitions)
+            session.commit()
 
             logger.info(f"Added case to the database: {case.name}")
 
@@ -284,14 +300,18 @@ class CaseController(Controller):
             if not case:
                 logger.error(f"Case {name} not found in the database")
                 return
+
+            statement = select(ScenarioCaseLink).where(
+                ScenarioCaseLink.case_id == case.id
+            )
+            scenario_case_links = session.exec(statement).all()
+
+            for scenario_case_link in scenario_case_links:
+                if os.path.exists(scenario_case_link.file_path):
+                    os.remove(scenario_case_link.file_path)
+
             db.delete(case, session=session)
             logger.info(f"Deleted case from the database: {case}")
-
-    def get_files(self, root_dir: str, pattern="*.sav") -> List[pathlib.Path]:
-        """Return a list of files in the root directory"""
-
-        files = list(pathlib.Path(root_dir).rglob(pattern))
-        return files
 
 
 class GeneratorController(Controller):

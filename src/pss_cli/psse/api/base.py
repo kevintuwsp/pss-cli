@@ -7,6 +7,7 @@ pssepath.add_pssepath()
 
 import psse34  # noqa: F401, E402  # type: ignore
 import psspy  # noqa: E402  # type: ignore
+import redirect  # noqa: E402  # type: ignore
 
 from pss_cli.psse.api.case_data import PsseCaseDataMixin  # noqa: E402
 
@@ -22,6 +23,7 @@ class PsseAPI(PsseCaseDataMixin, BaseModel):
 
         if not self.initialised:
             with SilenceStdout():
+                redirect.psse2py()
                 psspy.psseinit(num_busses)
             self.initialised = True
 

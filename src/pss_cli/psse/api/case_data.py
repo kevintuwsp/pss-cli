@@ -1,4 +1,3 @@
-import typing
 from typing import List, Tuple
 from itertools import groupby
 from operator import itemgetter

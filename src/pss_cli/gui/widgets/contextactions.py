@@ -10,6 +10,9 @@ from pss_cli.gui.dialogs.delete_case import DeleteCase
 from pss_cli.gui.dialogs.add_gs import AddGeneratingSystem
 from pss_cli.gui.dialogs.delete_gs import DeleteGeneratingSystem
 from pss_cli.gui.dialogs.add_gs_setpoint import AddGeneratingSystemSetpoint
+from pss_cli.gui.settings import settings
+
+error_color = settings.value("gui/error_color")
 
 
 class SQLActions(QtWidgets.QWidget):
@@ -46,12 +49,12 @@ class SQLActions(QtWidgets.QWidget):
         self.delete_case_button = QtWidgets.QPushButton("Delete Case")
         self.delete_case_button.clicked.connect(self.delete_case_action)
         self._layout.addWidget(self.delete_case_button)
-        self.delete_case_button.setStyleSheet("color: red;")
+        self.delete_case_button.setStyleSheet(f"color: {error_color};")
 
         self.delete_scenario_button = QtWidgets.QPushButton("Delete Scenario")
         self.delete_scenario_button.clicked.connect(self.delete_scenario_action)
         self._layout.addWidget(self.delete_scenario_button)
-        self.delete_scenario_button.setStyleSheet("color: red;")
+        self.delete_scenario_button.setStyleSheet(f"color: {error_color};")
 
         self.delete_generating_system_button = QtWidgets.QPushButton(
             "Delete Generating System"
@@ -60,7 +63,7 @@ class SQLActions(QtWidgets.QWidget):
             self.delete_generating_system
         )
         self._layout.addWidget(self.delete_generating_system_button)
-        self.delete_generating_system_button.setStyleSheet("color: red;")
+        self.delete_generating_system_button.setStyleSheet(f"color: {error_color};")
 
     def add_generating_system_action(self):
         self.set_sql_view.emit("generatingsystem")
