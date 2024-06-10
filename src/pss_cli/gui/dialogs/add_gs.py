@@ -5,18 +5,18 @@ from PyQt5.QtCore import pyqtSlot
 
 from pss_cli.core.logging import logger
 from pss_cli.gui.dialogs.simple_dialog import SimpleDialog
-from pss_cli.core.controllers import GeneratingSystemController, GeneratorController
+from pss_cli.core.controllers import ControllerFactory
 from pss_cli.core.database import db
 from pss_cli.gui.widgets.searchable_combobox import SearchableQComboBox
 
 
-# TODO: Incorrect, modify to use branchdefs instead of busdefs, missing branch id
 class AddGeneratingSystem(SimpleDialog):
     """Add a generating system to the database"""
 
     def __init__(self, parent: Optional[QtWidgets.QWidget] = None):
-        self.controller = GeneratingSystemController()
-        self.generator_controller = GeneratorController()
+        controller_factory = ControllerFactory()
+        self.controller = controller_factory.create_controller("generating_system")
+        self.generator_controller = controller_factory.create_controller("generator")
         super().__init__(parent)
 
     def init_ui(self):
@@ -96,7 +96,12 @@ class AddGeneratingSystem(SimpleDialog):
         case = self.controller.get_case(self.case_name_edit.currentText())
 
         if last_only:
-            generator_bus_number = int(self.generators[-1].currentText())
+            try:
+                generator_bus_number = int(self.generators[-1].currentText())
+                self.generators[-1].setStyleSheet("")
+            except ValueError:
+                self.generators[-1].setStyleSheet("border: 1px solid red")
+                return
             machine_ids = self.controller.get_machine_ids(generator_bus_number, case)
             if not machine_ids:
                 self.machine_ids[-1].clear()
@@ -107,7 +112,12 @@ class AddGeneratingSystem(SimpleDialog):
             return
 
         for generator, machine_id in zip(self.generators, self.machine_ids):
-            generator_bus_number = int(generator.currentText())
+            try:
+                generator_bus_number = int(generator.currentText())
+                generator.setStyleSheet("")
+            except ValueError:
+                generator.setStyleSheet("border: 1px solid red")
+                return
             machine_ids = self.controller.get_machine_ids(generator_bus_number, case)
             if not machine_ids:
                 machine_id.clear()
@@ -169,12 +179,17 @@ class AddGeneratingSystem(SimpleDialog):
         """Update the bus name based on the selected case and bus number."""
 
         case = self.controller.get_case(self.case_name_edit.currentText())
-        from_bus_number = self.from_bus_no.currentText()
+        try:
+            from_bus_number = int(self.from_bus_no.currentText())
+            self.from_bus_no.setStyleSheet("")
+        except ValueError:
+            self.from_bus_no.setStyleSheet("border: 1px solid red")
+            return
         if from_bus_number == "":
             self.from_bus_name.setText("")
             return
 
-        from_bus_name = self.controller.get_bus_name(case, int(from_bus_number))
+        from_bus_name = self.controller.get_bus_name(case, from_bus_number)
         if not from_bus_name:
             self.from_bus_name.setText("")
             return
@@ -184,11 +199,16 @@ class AddGeneratingSystem(SimpleDialog):
         """Update the bus name based on the selected case and bus number"""
 
         case = self.controller.get_case(self.case_name_edit.currentText())
-        to_bus_number = self.to_bus_no.currentText()
+        try:
+            to_bus_number = int(self.to_bus_no.currentText())
+            self.to_bus_no.setStyleSheet("")
+        except ValueError:
+            self.to_bus_no.setStyleSheet("border: 1px solid red")
+            return
         if to_bus_number == "":
             self.to_bus_name.setText("")
             return
-        to_bus_name = self.controller.get_bus_name(case, int(to_bus_number))
+        to_bus_name = self.controller.get_bus_name(case, to_bus_number)
         if not to_bus_name:
             self.to_bus_name.setText("")
             return

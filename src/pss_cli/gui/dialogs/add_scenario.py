@@ -6,14 +6,15 @@ from pss_cli.core.logging import logger
 from pss_cli.gui.dialogs.simple_dialog import SimpleDialog
 from pss_cli.gui.widgets.checkable_combobox import CheckableComboBox
 from pss_cli.core.database import db
-from pss_cli.core.controllers import ScenarioController
+from pss_cli.core.controllers import ControllerFactory
 
 
 class AddScenario(SimpleDialog):
     """Add a scenario to the database"""
 
     def __init__(self, parent: Optional[QtWidgets.QWidget] = None):
-        self.controller = ScenarioController()
+        controller_factory = ControllerFactory()
+        self.controller = controller_factory.create_controller("scenario")
         super().__init__(parent)
 
     def init_ui(self):

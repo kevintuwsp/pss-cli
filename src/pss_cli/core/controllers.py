@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 import os
 import pathlib
 import shutil
@@ -26,222 +27,46 @@ from pss_cli.core.extractors import (
 )
 
 
-class ScenarioController(BaseModel):
-    def __init__(self):
-        super().__init__()
+class Controller(ABC, BaseModel):
+    """Base class for controllers"""
 
-    def add(self, name: str, description: str, cases: List[Case]) -> None:
-        """Add a scenario to the database"""
+    @abstractmethod
+    def add(self, *args, **kwargs):
+        raise NotImplementedError
 
-        scenario = Scenario(name=name, description=description)
+    @abstractmethod
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def get_objects_from_db(self, table_name: str):
+        """Return a list of objects from the database"""
+
+        table_obj = db.get_table_object(table_name)
+        with db.session() as session:
+            statement = select(table_obj)
+            objects = session.exec(statement).all()
+
+        return objects
+
+    def get_generating_systems(self, case: Case) -> Sequence[GeneratingSystem]:
+        """Return a list of generating systems for a case"""
 
         with db.session() as session:
-            for case in cases:
-                scenario_file_path = self.create_scenario_file(scenario, case)
-                scenario_case_link = ScenarioCaseLink(
-                    scenario=scenario,
-                    case=case,
-                    file_path=str(scenario_file_path),
-                    md5_hash=get_hash(str(scenario_file_path)),
-                )
-                db.add(scenario_case_link, session)
-            logger.info(f"Added scenario {scenario.name} to the database")
-            db.commit(session)
-
-    def delete(self, scenario_name: str) -> None:
-        """Delete a scenario from the database"""
-
-        with db.session() as session:
-            statement = select(Scenario).where(Scenario.name == scenario_name)
-            scenario = session.exec(statement).first()
-
-            if not scenario:
-                logger.error(f"Scenario {scenario_name} not found in the database")
-                return
-
-            statement = select(ScenarioCaseLink).where(
-                ScenarioCaseLink.scenario_id == scenario.id
+            statement = select(GeneratingSystem).where(
+                GeneratingSystem.case_id == case.id
             )
-            scenario_case_links = session.exec(statement).all()
+            generating_systems = session.exec(statement).all()
 
-            for scenario_case_link in scenario_case_links:
-                if os.path.exists(scenario_case_link.file_path):
-                    os.remove(scenario_case_link.file_path)
+        return generating_systems
 
-            db.delete(scenario, session=session)
-            logger.info(f"Deleted scenario from the database: {scenario.name}")
-
-    def create_scenario_file(self, scenario: Scenario, case: Case):
-        """Create a file for the scenario"""
-
-        case_file_path = pathlib.Path(case.file_path)
-        scenario_file_path = self.get_scenario_file_path(scenario, case)
-        os.makedirs(scenario_file_path.parent, exist_ok=True)
-        shutil.copy(src=case_file_path, dst=scenario_file_path)
-
-        return scenario_file_path
-
-    def get_scenario_filename(self, scenario: Scenario, case: Case) -> str:
-        """Create a filename for the scenario"""
-
-        case_file_path = pathlib.Path(case.file_path)
-        extension = case_file_path.suffix
-        return f"{case.name} - {scenario.name}{extension}"
-
-    def get_scenario_file_path(self, scenario: Scenario, case: Case) -> pathlib.Path:
-        """Get the file path for the scenario"""
-
-        directory = pathlib.Path(SCENARIO_PATH)
-        file_name = self.get_scenario_filename(scenario, case)
-        return directory.joinpath(file_name)
-
-
-class CaseController(BaseModel):
-    """Manages the cases in the project"""
-
-    def __init__(self):
-        super().__init__()
-
-    def add(self, name: str, description: str, file_path: str):
-        """Add a case to the database"""
-
-        md5_hash = get_hash(file_path)
-        case = Case(
-            name=name,
-            description=description,
-            file_path=file_path,
-            md5_hash=md5_hash,
-        )
+    def get_scenarios(self) -> Sequence[Scenario]:
+        """Return a list of scenarios"""
 
         with db.session() as session:
-            db.add(case, session=session, commit=True)
-            session.refresh(case)
+            statement = select(Scenario)
+            scenarios = session.exec(statement).all()
 
-            bus_definitions = BusDefinitionObjExtractor().extract(case)
-            branch_definitions = BranchDefinitionObjExtractor().extract(case)
-            machine_definitions = MachineDefinitionObjExtractor().extract(case)
-            two_winding_transformer_definitions = (
-                TwoWindingTransformerDefinitionObjExtractor().extract(case)
-            )
-            db.add_all(bus_definitions, session=session, commit=False)
-            db.add_all(branch_definitions, session=session, commit=False)
-            db.add_all(machine_definitions, session=session, commit=False)
-            db.add_all(
-                two_winding_transformer_definitions, session=session, commit=False
-            )
-            db.commit(session)
-
-            logger.info(f"Added case to the database: {case.name}")
-
-    def delete(self, name: str):
-        """Delete a case from the database"""
-
-        with db.session() as session:
-            statement = select(Case).where(Case.name == name)
-            case = session.exec(statement).first()
-            if not case:
-                logger.error(f"Case {name} not found in the database")
-                return
-            db.delete(case, session=session)
-            logger.info(f"Deleted case from the database: {case}")
-
-    def get_files(self, root_dir: str, pattern="*.sav") -> List[pathlib.Path]:
-        """Return a list of files in the root directory"""
-
-        files = list(pathlib.Path(root_dir).rglob(pattern))
-        return files
-
-
-class GeneratorController(BaseModel):
-    """Manages the generators in the project"""
-
-    def __init__(self):
-        super().__init__()
-
-    def add(
-        self,
-        bus_number: int,
-        machine_id: str,
-        generating_system: GeneratingSystem,
-    ) -> None:
-        """Add a generator to the database"""
-
-        generator = Generator(
-            bus_number=bus_number,
-            machine_id=machine_id,
-            generating_system_id=generating_system.id,
-        )
-
-        with db.session() as session:
-            session.add(generator)
-            session.commit()
-            logger.info(f"Added generator to the database: {bus_number} {machine_id}")
-
-    def delete(self, bus_number: int, machine_id: str, gs_name: str):
-        """Delete a generator from the database"""
-
-        with db.session() as session:
-            statement = select(GeneratingSystem).where(GeneratingSystem.name == gs_name)
-            generating_system = session.exec(statement).first()
-
-            if not generating_system:
-                logger.error(f"Generating system {gs_name} not found in the database")
-                return
-
-            statement = (
-                select(Generator)
-                .where(Generator.bus_number == bus_number)
-                .where(Generator.machine_id == machine_id)
-                .where(Generator.generating_system_id == generating_system.id)
-            )
-            generator = session.exec(statement).first()
-            session.delete(generator)
-            session.commit()
-            logger.info(
-                f"Deleted generator from the database: {bus_number} {machine_id}"
-            )
-
-
-class GeneratingSystemController(BaseModel):
-    """Manages the generating systems in the project"""
-
-    def __init__(self):
-        super().__init__()
-
-    def add(
-        self,
-        name: str,
-        case: Case,
-        from_bus_no: int,
-        to_bus_no: int,
-        branch_id: str,
-        reversed: bool,
-    ):
-        """Add a generating system to the database"""
-
-        generating_system = GeneratingSystem(
-            name=name,
-            from_bus_number=from_bus_no,
-            to_bus_number=to_bus_no,
-            reversed=reversed,
-            branch_id=branch_id,
-            case_id=case.id,
-        )
-
-        with db.session() as session:
-            session.add(generating_system)
-            session.commit()
-            logger.info(f"Added generating system to the database: {name}")
-
-    def delete(self, name: str):
-        """Delete a generating system from the database"""
-
-        with db.session() as session:
-            statement = select(GeneratingSystem).where(GeneratingSystem.name == name)
-            generating_system = session.exec(statement).first()
-            session.delete(generating_system)
-            session.commit()
-            logger.info(f"Deleted generating system from the database: {name}")
+        return scenarios
 
     def get_case(self, name: str) -> Case:
         with db.session() as session:
@@ -343,7 +168,225 @@ class GeneratingSystemController(BaseModel):
         return generating_system
 
 
-class GeneratingSystemSetpointController(BaseModel):
+class ScenarioController(Controller):
+    def __init__(self):
+        super().__init__()
+
+    def add(self, name: str, description: str, cases: List[Case]) -> None:
+        """Add a scenario to the database"""
+
+        scenario = Scenario(name=name, description=description)
+
+        with db.session() as session:
+            for case in cases:
+                scenario_file_path = self.create_scenario_file(scenario, case)
+                scenario_case_link = ScenarioCaseLink(
+                    scenario=scenario,
+                    case=case,
+                    file_path=str(scenario_file_path),
+                    md5_hash=get_hash(str(scenario_file_path)),
+                )
+                db.add(scenario_case_link, session)
+            logger.info(f"Added scenario {scenario.name} to the database")
+            db.commit(session)
+
+    def delete(self, scenario_name: str) -> None:
+        """Delete a scenario from the database"""
+
+        with db.session() as session:
+            statement = select(Scenario).where(Scenario.name == scenario_name)
+            scenario = session.exec(statement).first()
+
+            if not scenario:
+                logger.error(f"Scenario {scenario_name} not found in the database")
+                return
+
+            statement = select(ScenarioCaseLink).where(
+                ScenarioCaseLink.scenario_id == scenario.id
+            )
+            scenario_case_links = session.exec(statement).all()
+
+            for scenario_case_link in scenario_case_links:
+                if os.path.exists(scenario_case_link.file_path):
+                    os.remove(scenario_case_link.file_path)
+
+            db.delete(scenario, session=session)
+            logger.info(f"Deleted scenario from the database: {scenario.name}")
+
+    def create_scenario_file(self, scenario: Scenario, case: Case):
+        """Create a file for the scenario"""
+
+        case_file_path = pathlib.Path(case.file_path)
+        scenario_file_path = self.get_scenario_file_path(scenario, case)
+        os.makedirs(scenario_file_path.parent, exist_ok=True)
+        shutil.copy(src=case_file_path, dst=scenario_file_path)
+
+        return scenario_file_path
+
+    def get_scenario_filename(self, scenario: Scenario, case: Case) -> str:
+        """Create a filename for the scenario"""
+
+        case_file_path = pathlib.Path(case.file_path)
+        extension = case_file_path.suffix
+        return f"{case.name} - {scenario.name}{extension}"
+
+    def get_scenario_file_path(self, scenario: Scenario, case: Case) -> pathlib.Path:
+        """Get the file path for the scenario"""
+
+        directory = pathlib.Path(SCENARIO_PATH)
+        file_name = self.get_scenario_filename(scenario, case)
+        return directory.joinpath(file_name)
+
+
+class CaseController(Controller):
+    """Manages the cases in the project"""
+
+    def __init__(self):
+        super().__init__()
+
+    def add(self, name: str, description: str, file_path: str):
+        """Add a case to the database"""
+
+        md5_hash = get_hash(file_path)
+        case = Case(
+            name=name,
+            description=description,
+            file_path=file_path,
+            md5_hash=md5_hash,
+        )
+
+        with db.session() as session:
+            db.add(case, session=session, commit=True)
+            session.refresh(case)
+
+            bus_definitions = BusDefinitionObjExtractor().extract(case)
+            branch_definitions = BranchDefinitionObjExtractor().extract(case)
+            machine_definitions = MachineDefinitionObjExtractor().extract(case)
+            two_winding_transformer_definitions = (
+                TwoWindingTransformerDefinitionObjExtractor().extract(case)
+            )
+            db.add_all(bus_definitions, session=session, commit=False)
+            db.add_all(branch_definitions, session=session, commit=False)
+            db.add_all(machine_definitions, session=session, commit=False)
+            db.add_all(
+                two_winding_transformer_definitions, session=session, commit=False
+            )
+            db.commit(session)
+
+            logger.info(f"Added case to the database: {case.name}")
+
+    def delete(self, name: str):
+        """Delete a case from the database"""
+
+        with db.session() as session:
+            statement = select(Case).where(Case.name == name)
+            case = session.exec(statement).first()
+            if not case:
+                logger.error(f"Case {name} not found in the database")
+                return
+            db.delete(case, session=session)
+            logger.info(f"Deleted case from the database: {case}")
+
+    def get_files(self, root_dir: str, pattern="*.sav") -> List[pathlib.Path]:
+        """Return a list of files in the root directory"""
+
+        files = list(pathlib.Path(root_dir).rglob(pattern))
+        return files
+
+
+class GeneratorController(Controller):
+    """Manages the generators in the project"""
+
+    def __init__(self):
+        super().__init__()
+
+    def add(
+        self,
+        bus_number: int,
+        machine_id: str,
+        generating_system: GeneratingSystem,
+    ) -> None:
+        """Add a generator to the database"""
+
+        generator = Generator(
+            bus_number=bus_number,
+            machine_id=machine_id,
+            generating_system_id=generating_system.id,
+        )
+
+        with db.session() as session:
+            session.add(generator)
+            session.commit()
+            logger.info(f"Added generator to the database: {bus_number} {machine_id}")
+
+    def delete(self, bus_number: int, machine_id: str, gs_name: str):
+        """Delete a generator from the database"""
+
+        with db.session() as session:
+            statement = select(GeneratingSystem).where(GeneratingSystem.name == gs_name)
+            generating_system = session.exec(statement).first()
+
+            if not generating_system:
+                logger.error(f"Generating system {gs_name} not found in the database")
+                return
+
+            statement = (
+                select(Generator)
+                .where(Generator.bus_number == bus_number)
+                .where(Generator.machine_id == machine_id)
+                .where(Generator.generating_system_id == generating_system.id)
+            )
+            generator = session.exec(statement).first()
+            session.delete(generator)
+            session.commit()
+            logger.info(
+                f"Deleted generator from the database: {bus_number} {machine_id}"
+            )
+
+
+class GeneratingSystemController(Controller):
+    """Manages the generating systems in the project"""
+
+    def __init__(self):
+        super().__init__()
+
+    def add(
+        self,
+        name: str,
+        case: Case,
+        from_bus_no: int,
+        to_bus_no: int,
+        branch_id: str,
+        reversed: bool,
+    ):
+        """Add a generating system to the database"""
+
+        generating_system = GeneratingSystem(
+            name=name,
+            from_bus_number=from_bus_no,
+            to_bus_number=to_bus_no,
+            reversed=reversed,
+            branch_id=branch_id,
+            case_id=case.id,
+        )
+
+        with db.session() as session:
+            session.add(generating_system)
+            session.commit()
+            logger.info(f"Added generating system to the database: {name}")
+
+    def delete(self, name: str):
+        """Delete a generating system from the database"""
+
+        with db.session() as session:
+            statement = select(GeneratingSystem).where(GeneratingSystem.name == name)
+            generating_system = session.exec(statement).first()
+            session.delete(generating_system)
+            session.commit()
+            logger.info(f"Deleted generating system from the database: {name}")
+
+
+class GeneratingSystemSetpointController(Controller):
     """Manages the generating system setpoints in the project"""
 
     def __init__(self):
@@ -368,8 +411,8 @@ class GeneratingSystemSetpointController(BaseModel):
             gs_setpoint = GeneratingSystemSetpoint(
                 p_setpoint=p_setpoint,
                 q_setpoint=q_setpoint,
-                generating_system_id=generating_system.id,
-                scenario_id=scenario.id,
+                generating_system_id=generating_system.id,  # type: ignore
+                scenario_id=scenario.id,  # type: ignore
             )
 
             session.add(gs_setpoint)
@@ -391,22 +434,25 @@ class GeneratingSystemSetpointController(BaseModel):
             session.commit()
             logger.info("Deleted generating system setpoints from the database")
 
-    def get_generating_systems(self, case: Case) -> Sequence[GeneratingSystem]:
-        """Return a list of generating systems for a case"""
 
-        with db.session() as session:
-            statement = select(GeneratingSystem).where(
-                GeneratingSystem.case_id == case.id
-            )
-            generating_systems = session.exec(statement).all()
+class ControllerFactory(BaseModel):
+    """Factory class for creating controllers"""
 
-        return generating_systems
+    def __init__(self):
+        super().__init__()
 
-    def get_scenarios(self) -> Sequence[Scenario]:
-        """Return a list of scenarios"""
+    def create_controller(self, controller_name: str) -> Controller:
+        """Create a controller"""
 
-        with db.session() as session:
-            statement = select(Scenario)
-            scenarios = session.exec(statement).all()
-
-        return scenarios
+        if controller_name == "case":
+            return CaseController()
+        elif controller_name == "scenario":
+            return ScenarioController()
+        elif controller_name == "generator":
+            return GeneratorController()
+        elif controller_name == "generating_system":
+            return GeneratingSystemController()
+        elif controller_name == "generating_system_setpoint":
+            return GeneratingSystemSetpointController()
+        else:
+            raise ValueError(f"Controller {controller_name} not found")

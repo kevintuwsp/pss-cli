@@ -5,14 +5,15 @@ from PyQt5.QtCore import pyqtSlot
 from pss_cli.core.logging import logger
 from pss_cli.gui.dialogs.simple_dialog import SimpleDialog
 from pss_cli.core.database import db
-from pss_cli.core.controllers import CaseController
+from pss_cli.core.controllers import ControllerFactory
 
 
 class DeleteCase(SimpleDialog):
     """Delete a case from the database"""
 
     def __init__(self, parent: Optional[QtWidgets.QWidget] = None):
-        self.controller = CaseController()
+        controller_factory = ControllerFactory()
+        self.controller = controller_factory.create_controller("case")
         super().__init__(parent)
 
     def init_ui(self):

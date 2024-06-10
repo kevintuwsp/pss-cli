@@ -4,7 +4,7 @@ from PyQt5.QtCore import pyqtSlot
 
 from pss_cli.core.logging import logger
 from pss_cli.gui.dialogs.simple_dialog import SimpleDialog
-from pss_cli.core.controllers import GeneratingSystemSetpointController
+from pss_cli.core.controllers import ControllerFactory
 
 
 # TODO: Incomplete, finish off
@@ -12,7 +12,10 @@ class AddGeneratingSystemSetpoint(SimpleDialog):
     """Add a generating system to the database"""
 
     def __init__(self, parent: Optional[QtWidgets.QWidget] = None):
-        self.controller = GeneratingSystemSetpointController()
+        controller_factory = ControllerFactory()
+        self.controller = controller_factory.create_controller(
+            "generating_system_setpoint"
+        )
         super().__init__(parent)
 
     def init_ui(self):
