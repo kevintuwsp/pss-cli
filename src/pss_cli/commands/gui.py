@@ -12,7 +12,7 @@ def show():
     app = qtw.QApplication([])
 
     mw = MainWindow()
-
+    mw.show()
     app.exec_()
 
 

@@ -36,3 +36,10 @@ allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/pss_cli"]
+
+[tool.pyright]
+typeCheckingMode = "standard"
+pythonVersion = "3.7"
+
+[tool.flake8]
+max-line-length = 120

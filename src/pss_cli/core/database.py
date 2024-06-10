@@ -26,15 +26,22 @@ class Database:
     def select_table(
         self,
         table_name: str,
-        where: Optional[ColumnElement[bool]] = None,
+        where: Optional[
+            Union[List[ColumnElement[bool]], List[ColumnElement[bool]]]
+        ] = None,
         session: Optional[Session] = None,
     ) -> Union[Sequence[SQLModel], Sequence[None], None]:
         """Return objects from the database table"""
 
         table_obj = self.get_table_object(table_name)
         statement = select(table_obj)
+
         if where is not None:
-            statement = statement.where(where)
+            if isinstance(where, list):
+                for where_clause in where:
+                    statement = statement.where(where_clause)
+            else:
+                statement = statement.where(where)
 
         if not session:
             with self.session() as session:
@@ -51,6 +58,16 @@ class Database:
         """Return a session object"""
         return Session(self.engine)
 
+    def add_all(self, objs: Sequence[SQLModel], session: Session, commit: bool = True):
+        """Add a list of objects to the database"""
+
+        for obj in objs:
+            session.add(obj)
+        if commit:
+            session.commit()
+
+        return objs
+
     def add(self, obj: SQLModel, session: Session, commit: bool = True):
         """Add an object to the database"""
 
@@ -59,9 +76,15 @@ class Database:
         if commit:
             session.commit()
             session.refresh(obj)
-        # print(f"Added {obj.__tablename__} object to the database:")
-        # print_model(obj)
         return obj
+
+    def delete(self, obj: SQLModel, session: Session, commit: bool = True):
+        """Delete an object from the database"""
+
+        session.delete(obj)
+
+        if commit:
+            session.commit()
 
     def commit(self, session: Session):
         """Commit the session"""

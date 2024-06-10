@@ -17,8 +17,7 @@ from pss_cli.gui.settings import settings
 
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-main_icon = os.path.join(
-    basedir, "assets/icons8-database-administrator-48.png")
+main_icon = os.path.join(basedir, "assets/icons8-database-administrator-48.png")
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -51,20 +50,21 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.setMenuBar(self._menu_bar)
         self.setStatusBar(self._status_bar)
-
         self.setCentralWidget(self._central_window)
-        self.addDockWidget(
-            QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self._sidebar)
+        self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self._sidebar)
         self.addDockWidget(
             QtCore.Qt.DockWidgetArea.BottomDockWidgetArea, self._output_window
         )
         self.addDockWidget(
             QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, self._context_actions
         )
-        self.show()
 
         self._sidebar.list_view.clicked.connect(
             self._central_window._sql_view.set_table_view_from_index
+        )
+
+        self._context_actions.sql_actions.set_sql_view.connect(
+            self._central_window._sql_view.set_table_model
         )
 
     def resizeEvent(self, a0: Optional[QtGui.QResizeEvent] = None) -> None:

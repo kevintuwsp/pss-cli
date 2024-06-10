@@ -17,15 +17,20 @@ editable_tables = [
 class SQLView(QtWidgets.QWidget):
     def __init__(self, parent: Optional[QtWidgets.QTabWidget] = None):
         super().__init__(parent)
-        self.parent = parent
         self._layout = QtWidgets.QVBoxLayout()
         self._layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self._layout)
         self.setWindowTitle("SQL Table models")
         self.qdb = self.init_db()
-        self.model = QtSql.QSqlRelationalTableModel()
-        self.delegate = QtSql.QSqlRelationalDelegate(self)
-        self.set_table_view("case")
+        self.model = QtSql.QSqlTableModel()
+        # self.model = QtSql.QSqlRelationalTableModel()
+        # self.delegate = QtSql.QSqlRelationalDelegate(self)
+        self.view = QtWidgets.QTableView()
+        self.view.setModel(self.model)
+        # self.view.setItemDelegate(self.delegate)
+        self._layout.addWidget(self.view)
+        self.view.setSortingEnabled(True)
+        # self.set_table_model("case")
 
     def init_db(self) -> QtSql.QSqlDatabase:
         qdb = QtSql.QSqlDatabase.addDatabase("QSQLITE")
@@ -44,22 +49,11 @@ class SQLView(QtWidgets.QWidget):
 
         self.model.setTable(table_name)
         self.model.select()
-        self.parent.setCurrentWidget(self)  # type: ignore
         if table_name not in editable_tables:
             self.view.setEditTriggers(QtWidgets.QTableView.NoEditTriggers)
         else:
             self.view.setEditTriggers(QtWidgets.QTableView.DoubleClicked)
-
-    def set_table_view(self, table_name: str) -> None:
-        """Adds a table view to the layout."""
-        self.view = QtWidgets.QTableView()
-        self.view.setSortingEnabled(True)
-        self.set_table_model(table_name)
-        self.view.setModel(self.model)
-        self.view.setItemDelegate(self.delegate)
         self.view.resizeColumnsToContents()
-        self.clear_layout()
-        self._layout.addWidget(self.view)
 
     def set_table_view_from_index(self, index: QModelIndex) -> None:
         """Sets the table view from the index."""
