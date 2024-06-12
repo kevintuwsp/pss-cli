@@ -154,6 +154,9 @@ class GeneratingSystemSetpoint(SQLModel, table=True):
     scenario_id: Optional[int] = Field(
         default=None, primary_key=True, foreign_key="scenario.id"
     )
+    case_id: Optional[int] = Field(
+        default=None, primary_key=True, foreign_key="case.id"
+    )
     generating_system_id: Optional[int] = Field(
         default=None, primary_key=True, foreign_key="generatingsystem.id"
     )

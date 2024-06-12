@@ -10,8 +10,15 @@ class InfoWidget(QtWidgets.QWidget):
         self._layout = QtWidgets.QGridLayout()
         self.setLayout(self._layout)
 
-        self._label = QtWidgets.QLabel("This is a simple GUI for the PSS CLI")
-        self._layout.addWidget(self._label)
+    def add_widget(self, widget: QtWidgets.QWidget, label: Optional[str] = None):
+        """Add a widget to the layout"""
+
+        if label is not None:
+            label_widget = QtWidgets.QLabel(label)
+            self._layout.addWidget(label_widget, self._layout.rowCount(), 0)
+            self._layout.addWidget(widget, self._layout.rowCount() - 1, 1)
+        else:
+            self._layout.addWidget(widget, self._layout.rowCount(), 0, 1, 2)
 
     def set_widget(
         self,

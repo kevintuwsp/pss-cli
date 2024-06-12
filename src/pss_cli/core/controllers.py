@@ -48,7 +48,10 @@ class Controller(ABC, BaseModel):
 
         return objects
 
-    def get_generating_systems(self, case: Case) -> Sequence[GeneratingSystem]:
+    def get_generating_systems(
+        self,
+        case: Case,
+    ) -> Sequence[GeneratingSystem]:
         """Return a list of generating systems for a case"""
 
         with db.session() as session:
@@ -59,14 +62,40 @@ class Controller(ABC, BaseModel):
 
         return generating_systems
 
-    def get_scenarios(self) -> Sequence[Scenario]:
+    def get_scenario(self, name: str) -> Scenario:
+        """Return a scenario"""
+
+        with db.session() as session:
+            statement = select(Scenario).where(Scenario.name == name)
+            scenario = session.exec(statement).first()
+
+        return scenario
+
+    def get_scenarios(self, case_name: Optional[str] = None) -> Sequence[Scenario]:
         """Return a list of scenarios"""
+
+        if case_name:
+            case = self.get_case(case_name)
 
         with db.session() as session:
             statement = select(Scenario)
+            if case_name:
+                case = self.get_case(case_name)
+                statement = statement.where(ScenarioCaseLink.case_id == case.id).where(
+                    ScenarioCaseLink.scenario_id == Scenario.id
+                )
             scenarios = session.exec(statement).all()
 
         return scenarios
+
+    def get_cases(self) -> Sequence[Case]:
+        """Return a list of cases"""
+
+        with db.session() as session:
+            statement = select(Case)
+            cases = session.exec(statement).all()
+
+        return cases
 
     def get_case(self, name: str) -> Case:
         with db.session() as session:
@@ -415,6 +444,7 @@ class GeneratingSystemSetpointController(Controller):
     def add(
         self,
         scenario_name: str,
+        case_name: str,
         gs_name: str,
         p_setpoint: float,
         q_setpoint: float,
@@ -425,6 +455,9 @@ class GeneratingSystemSetpointController(Controller):
             statement = select(Scenario).where(Scenario.name == scenario_name)
             scenario = session.exec(statement).first()
 
+            statement = select(Case).where(Case.name == case_name)
+            case = session.exec(statement).first()
+
             statement = select(GeneratingSystem).where(GeneratingSystem.name == gs_name)
             generating_system = session.exec(statement).first()
 
@@ -433,6 +466,7 @@ class GeneratingSystemSetpointController(Controller):
                 q_setpoint=q_setpoint,
                 generating_system_id=generating_system.id,  # type: ignore
                 scenario_id=scenario.id,  # type: ignore
+                case_id=case.id,  # type: ignore
             )
 
             session.add(gs_setpoint)

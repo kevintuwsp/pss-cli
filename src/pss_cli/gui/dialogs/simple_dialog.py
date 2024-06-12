@@ -113,11 +113,13 @@ class SimpleDialog(QtWidgets.QDialog, SimpleDialogWidget):
             widget.setStyleSheet("")
 
     def get_validated(self):
-        return [widget for widget in self._required if self.get_widget_value(widget)]
+        return [
+            widget for widget in self._required if self.get_widget_value(widget) != ""
+        ]
 
     def get_unvalidated(self):
         return [
-            widget for widget in self._required if not self.get_widget_value(widget)
+            widget for widget in self._required if self.get_widget_value(widget) == ""
         ]
 
     def get_widget_value(self, widget: QtWidgets.QWidget):
