@@ -8,7 +8,17 @@ default_settings = {
     "logging/level": logging.INFO,
     "gui/theme": "dark",
     "gui/error_color": "red",
+    "gui/error_border_px": 1,
+    "gui/error_border_style": "solid",
 }
+
+error_border_style = (
+    f"border:"
+    f"{settings.value('gui/error_border_px')}px"
+    f"{settings.value('gui/error_border_style')}"
+    f"{settings.value('gui/error_border_color')}"
+)
+
 
 for key, value in default_settings.items():
     if not settings.contains(key):

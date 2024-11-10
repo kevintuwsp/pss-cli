@@ -8,6 +8,7 @@ from typing import List, Sequence, Optional
 from sqlmodel import select
 
 from pss_cli.core.database import db
+
 from pss_cli.core.models import BranchDefinition, Case, Generator
 from pss_cli.core.models import Scenario, ScenarioCaseLink
 from pss_cli.core.config import SCENARIO_PATH

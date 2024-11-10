@@ -6,7 +6,9 @@ from pss_cli.core.logging import logger
 from pss_cli.gui.dialogs.simple_dialog import SimpleDialog
 from pss_cli.gui.widgets.checkable_combobox import CheckableComboBox
 from pss_cli.core.database import db
-from pss_cli.core.controllers import ControllerFactory
+
+# from pss_cli.core.controllers import ControllerFactory
+from pss_cli.core.controllers_new import ControllerFactory
 
 
 class DeleteScenario(SimpleDialog):
@@ -20,15 +22,12 @@ class DeleteScenario(SimpleDialog):
     def init_ui(self):
         self.setWindowTitle("Delete a scenario from the database")
 
-        objects = db.select_table("scenario")
-
-        if not objects:
+        scenarios = self.controller.get_objects("scenario", attribute="name")
+        if not scenarios:
             logger.error("No scenarios found in the database")
 
-        self.scenarios_dict = {scenario.name: scenario for scenario in objects}
-
         self.scenarios = CheckableComboBox()
-        self.scenarios.addItems([str(name) for name in self.scenarios_dict.keys()])
+        self.scenarios.addItems(scenarios)
         self.add_widget(self.scenarios, "Scenario", required=True)
 
     @pyqtSlot()

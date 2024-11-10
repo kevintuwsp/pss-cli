@@ -5,9 +5,9 @@ from PyQt5.QtCore import pyqtSlot
 
 from pss_cli.core.logging import logger
 from pss_cli.gui.dialogs.simple_dialog import SimpleDialog
-from pss_cli.core.controllers import ControllerFactory
-from pss_cli.core.database import db
 from pss_cli.gui.widgets.searchable_combobox import SearchableQComboBox
+from pss_cli.core.controllers_new import ControllerFactory
+from pss_cli.gui.settings import error_border_style
 
 
 class AddGeneratingSystem(SimpleDialog):
@@ -17,18 +17,20 @@ class AddGeneratingSystem(SimpleDialog):
         controller_factory = ControllerFactory()
         self.controller = controller_factory.create_controller("generating_system")
         self.generator_controller = controller_factory.create_controller("generator")
+        self.generators = []
+        self.machine_ids = []
         super().__init__(parent)
 
     def init_ui(self):
         self.setWindowTitle("Add Generating system to the database")
 
-        cases = db.select_table("case")
+        case_names = self.controller.get_objects("case", attribute="name")
 
-        if not cases:
+        if not case_names:
             logger.error("No cases found in the database")
 
         self.case_name_edit = QtWidgets.QComboBox()
-        self.case_name_edit.addItems([str(case.name) for case in cases])  # type: ignore
+        self.case_name_edit.addItems(case_names)  # type: ignore
         self.case_description = QtWidgets.QLabel()
         self.case_filepath = QtWidgets.QLabel()
 
@@ -40,8 +42,6 @@ class AddGeneratingSystem(SimpleDialog):
         self.branch_id = SearchableQComboBox()
         self.reversed = QtWidgets.QCheckBox()
 
-        self.generators = []
-        self.machine_ids = []
         self.add_generator_button = QtWidgets.QPushButton("Add Generator")
 
         self.add_widget(self.case_name_edit, "Case Name", required=True)
@@ -56,7 +56,7 @@ class AddGeneratingSystem(SimpleDialog):
         self.add_widget(self.reversed, "Reversed", required=False)
         self.add_widget(self.add_generator_button, required=False)
 
-        if cases:
+        if case_names:
             self.update_case_info()
             self.update_from_bus_name()
             self.update_to_bus_name()
@@ -93,16 +93,27 @@ class AddGeneratingSystem(SimpleDialog):
     ) -> None:
         """Update the machine ids based on the selected case and generator bus numbers."""
 
-        case = self.controller.get_case(self.case_name_edit.currentText())
+        case_id = self.controller.get_object(
+            "case",
+            attribute="id",
+            conditions={"name": self.case_name_edit.currentText()},
+        )
 
         if last_only:
             try:
                 generator_bus_number = int(self.generators[-1].currentText())
                 self.generators[-1].setStyleSheet("")
             except ValueError:
-                self.generators[-1].setStyleSheet("border: 1px solid red")
+                self.generators[-1].setStyleSheet(error_border_style)
                 return
-            machine_ids = self.controller.get_machine_ids(generator_bus_number, case)
+            machine_ids = self.controller.get_objects(
+                "machinedefinition",
+                attribute="machine_id",
+                conditions={
+                    "bus_number": generator_bus_number,
+                    "case_id": case_id,
+                },
+            )
             if not machine_ids:
                 self.machine_ids[-1].clear()
                 return
@@ -116,9 +127,13 @@ class AddGeneratingSystem(SimpleDialog):
                 generator_bus_number = int(generator.currentText())
                 generator.setStyleSheet("")
             except ValueError:
-                generator.setStyleSheet("border: 1px solid red")
+                generator.setStyleSheet(error_border_style)
                 return
-            machine_ids = self.controller.get_machine_ids(generator_bus_number, case)
+            machine_ids = self.controller.get_objects(
+                "machinedefinition",
+                attribute="machine_id",
+                conditions={"bus_number": generator_bus_number},
+            )
             if not machine_ids:
                 machine_id.clear()
                 continue
@@ -188,7 +203,7 @@ class AddGeneratingSystem(SimpleDialog):
             from_bus_number = int(self.from_bus_no.currentText())
             self.from_bus_no.setStyleSheet("")
         except ValueError:
-            self.from_bus_no.setStyleSheet("border: 1px solid red")
+            self.from_bus_no.setStyleSheet(error_border_style)
             return
         if from_bus_number == "":
             self.from_bus_name.setText("")
@@ -208,7 +223,7 @@ class AddGeneratingSystem(SimpleDialog):
             to_bus_number = int(self.to_bus_no.currentText())
             self.to_bus_no.setStyleSheet("")
         except ValueError:
-            self.to_bus_no.setStyleSheet("border: 1px solid red")
+            self.to_bus_no.setStyleSheet(error_border_style)
             return
         if to_bus_number == "":
             self.to_bus_name.setText("")
@@ -257,13 +272,13 @@ class AddGeneratingSystem(SimpleDialog):
     def accept(self):
         if self.check_duplicated_generators():
             for generator, machine_id in zip(self.generators, self.machine_ids):
-                generator.setStyleSheet("border: 1px solid red")
-                machine_id.setStyleSheet("border: 1px solid red")
+                generator.setStyleSheet(error_border_style)
+                machine_id.setStyleSheet(error_border_style)
             logger.error("Duplicated generators found")
             return
 
         if not self.generators or not self.machine_ids:
-            self.add_generator_button.setStyleSheet("border: 1px solid red")
+            self.add_generator_button.setStyleSheet(error_border_style)
             logger.error("Please add a generator to the generating system")
             return
 
